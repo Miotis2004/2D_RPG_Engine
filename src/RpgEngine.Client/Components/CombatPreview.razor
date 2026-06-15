@@ -1,0 +1,16 @@
+@inject GameState State
+
+<section class="panel combat-scene">
+    <div class="battle-side party-side">
+        @foreach (var hero in State.Party)
+        {
+            <CombatantCard Combatant="hero" />
+        }
+    </div>
+    <div class="battle-side enemy-side">
+        @foreach (var enemy in State.Enemies)
+        {
+            <CombatantCard Combatant="enemy" />
+        }
+    </div>
+</section>

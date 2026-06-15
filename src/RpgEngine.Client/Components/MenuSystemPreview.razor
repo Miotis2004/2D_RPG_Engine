@@ -1,0 +1,14 @@
+@inject EngineCatalog Catalog
+
+<section class="panel">
+    <h2>Menu Systems</h2>
+    <div class="menu-preview">
+        @foreach (var item in Catalog.ManagementMenus)
+        {
+            <button>
+                <strong>@item.Label</strong>
+                <span>@item.Description</span>
+            </button>
+        }
+    </div>
+</section>

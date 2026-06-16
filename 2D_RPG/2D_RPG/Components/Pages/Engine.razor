@@ -1,0 +1,55 @@
+@page "/engine"
+
+<PageTitle>Engine - 2D RPG Engine</PageTitle>
+
+<section class="hero-panel" aria-labelledby="engine-title">
+    <div>
+        <p class="eyebrow">Engine tab</p>
+        <h1 id="engine-title">Runtime systems for a classic 2D RPG.</h1>
+        <p class="hero-copy">
+            The engine side defines the playable world: map data, tile layers, map objects, event triggers,
+            project validation, and combat-facing content that can be consumed by the game runtime.
+        </p>
+    </div>
+    <aside class="hero-card" aria-label="Engine status">
+        <span class="status-pill">Engine content</span>
+        <h2>Data-driven runtime</h2>
+        <p>Maps, tilesets, objects, and events are modeled as project definitions so authored content can move from editor to gameplay.</p>
+    </aside>
+</section>
+
+<section class="systems-grid" id="systems" aria-label="Engine systems">
+    <article class="system-card">
+        <span aria-hidden="true">🗺️</span>
+        <h2>Tile map runtime</h2>
+        <p>Layered tile maps track terrain, decoration, collision, and object placement for explorable areas.</p>
+    </article>
+    <article class="system-card">
+        <span aria-hidden="true">⚙️</span>
+        <h2>Events and triggers</h2>
+        <p>Map events describe interactions such as enter-map triggers, dialogue, item rewards, and transfers.</p>
+    </article>
+    <article class="system-card">
+        <span aria-hidden="true">🧪</span>
+        <h2>Validation services</h2>
+        <p>Project validation keeps runtime content consistent before it is handed to gameplay systems.</p>
+    </article>
+</section>
+
+<section class="combat-preview" aria-labelledby="combat-title">
+    <div class="battle-stage" aria-label="Combat mockup">
+        <div class="fighter hero-fighter">Hero</div>
+        <div class="fighter mage-fighter">Mage</div>
+        <div class="fighter slime-fighter">Slime</div>
+        <div class="fighter goblin-fighter">Goblin</div>
+        <div class="battle-menu">Attack · Skill · Item · Run</div>
+    </div>
+    <div>
+        <p class="eyebrow">Gameplay-ready data</p>
+        <h2 id="combat-title">Designed to support adventure loops.</h2>
+        <p>
+            Engine content focuses on reusable RPG foundations: structured maps, characters, triggers,
+            items, and encounters that can power exploration and combat.
+        </p>
+    </div>
+</section>

@@ -75,7 +75,7 @@ public sealed class ProjectValidationService
         if (string.IsNullOrWhiteSpace(tileSet.Id)) errors.Add("A tileset is missing a stable id.");
         if (string.IsNullOrWhiteSpace(tileSet.Name)) errors.Add($"Tileset '{tileSet.Id}' is missing a display name.");
         if (tileSet.TileWidth <= 0 || tileSet.TileHeight <= 0) errors.Add($"Tileset '{tileSet.Id}' has invalid tile dimensions.");
-        AddDuplicates(tileSet.Tiles.Select(tile => tile.Id), $"tile id in tileset '{tileSet.Id}'", errors);
+        AddDuplicates(tileSet.Tiles.Select(tile => tile.Id.ToString()), $"tile id in tileset '{tileSet.Id}'", errors);
     }
 
     private static void AddDuplicates(IEnumerable<string> ids, string label, List<string> errors)

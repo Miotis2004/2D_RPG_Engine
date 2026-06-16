@@ -1,4 +1,30 @@
 @page "/"
-@using _2D_RPG.Components.Editor
 
-<EditorShell />
+<PageTitle>2D RPG Engine</PageTitle>
+
+<section class="landing-hero" aria-labelledby="landing-title">
+    <p class="eyebrow">Browser-based 2D RPG toolkit</p>
+    <h1 id="landing-title">Build classic RPG worlds with a focused engine and a visual editor.</h1>
+    <p class="hero-copy">
+        The 2D RPG Engine project combines runtime systems for maps, objects, events, and combat with an
+        in-browser Blazor editor for authoring playable adventures. Use the tabs below to explore what belongs
+        to the engine runtime and what belongs to the editor workspace.
+    </p>
+    <div class="hero-actions" role="navigation" aria-label="Project areas">
+        <NavLink class="btn btn-primary" href="engine">Explore Engine</NavLink>
+        <NavLink class="btn btn-outline-light" href="editor">Open Editor</NavLink>
+    </div>
+</section>
+
+<section class="landing-tabs" aria-label="2D RPG Engine and Editor overview">
+    <NavLink class="landing-tab engine-tab" href="engine">
+        <span class="tab-kicker">Engine tab</span>
+        <strong>Runtime foundation</strong>
+        <span>Tile maps, collision-aware objects, scripted events, and battle-ready gameplay data.</span>
+    </NavLink>
+    <NavLink class="landing-tab editor-tab" href="editor">
+        <span class="tab-kicker">Editor tab</span>
+        <strong>Authoring workspace</strong>
+        <span>Paint maps, manage layers, place objects and events, and validate project content interactively.</span>
+    </NavLink>
+</section>

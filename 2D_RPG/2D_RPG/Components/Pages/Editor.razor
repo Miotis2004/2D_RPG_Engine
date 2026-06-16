@@ -1,0 +1,17 @@
+@page "/editor"
+@using _2D_RPG.Components.Editor
+
+<PageTitle>Editor - 2D RPG Engine</PageTitle>
+
+<section class="editor-intro" aria-labelledby="editor-title">
+    <div>
+        <p class="eyebrow">Editor tab</p>
+        <h1 id="editor-title">Visual authoring for maps, objects, and events.</h1>
+        <p class="hero-copy">
+            The editor side provides the Blazor workspace for creating RPG content: choose tools, paint tiles,
+            manage maps and layers, inspect selected content, and track unsaved project changes.
+        </p>
+    </div>
+</section>
+
+<EditorShell />

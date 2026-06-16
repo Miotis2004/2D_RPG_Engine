@@ -1,0 +1,28 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+
+<section class="palette-panel" aria-label="Tile palette">
+    <h2>Tile Palette</h2>
+    <div class="tool-mode-grid" aria-label="Active tool">
+        @foreach (var tool in Enum.GetValues<EditorToolKind>())
+        {
+            <button type="button" class="tool @(EditorState.ToolState.ActiveTool == tool ? "active" : null)" @onclick="() => EditorState.SetActiveTool(tool)">@tool</button>
+        }
+    </div>
+
+    <h3>@TileSet?.Name</h3>
+    <div class="tileset palette-tiles" aria-label="Paintable tiles">
+        @foreach (var tile in TileSet?.Tiles ?? Enumerable.Empty<TileDefinition>())
+        {
+            <button type="button" class="tile-button @(tile.Id == EditorState.ToolState.SelectedTileId ? "active" : null)" title="@tile.Name" @onclick="() => EditorState.SelectTile(tile.Id)">
+                <span class="tile-swatch @tile.CssClass"></span>
+                <span>@tile.Name</span>
+            </button>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter] public TileSetDefinition? TileSet { get; set; }
+}

@@ -12,6 +12,7 @@ public sealed class EditorShellTests : TestContext
     {
         var editorState = new EditorStateService();
         Services.AddSingleton(editorState);
+        Services.AddSingleton<TileMapService>();
 
         var shell = RenderComponent<EditorShell>();
 
@@ -19,7 +20,7 @@ public sealed class EditorShellTests : TestContext
         Assert.Contains("Oakvale Village", shell.Markup);
         Assert.Contains("Clean", shell.Markup);
 
-        shell.FindAll("button").Single(button => button.TextContent.Contains("Mark dirty")).Click();
+        shell.FindAll("button").Single(button => button.TextContent.Contains("New map")).Click();
 
         Assert.True(editorState.IsDirty);
         Assert.Contains("Unsaved changes", shell.Markup);

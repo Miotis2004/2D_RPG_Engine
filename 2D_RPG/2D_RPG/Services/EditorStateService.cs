@@ -6,6 +6,7 @@ public sealed class EditorStateService
 {
     public ProjectDefinition CurrentProject { get; private set; } = CreateSampleProject();
     public bool IsDirty { get; private set; }
+    public EditorToolState ToolState { get; } = new();
     public string ActiveMapId
     {
         get => CurrentProject.ActiveMapId;
@@ -20,6 +21,16 @@ public sealed class EditorStateService
     }
 
     public MapDefinition? ActiveMap => CurrentProject.ActiveMap;
+
+    public void SetActiveTool(EditorToolKind tool) => ToolState.ActiveTool = tool;
+
+    public void SelectTile(int tileId)
+    {
+        ToolState.SelectedTileId = tileId;
+        ToolState.ActiveTool = EditorToolKind.Paint;
+    }
+
+    public void SetActiveLayer(string layerId) => ToolState.ActiveLayerId = layerId;
 
     public void MarkDirty() => IsDirty = true;
 

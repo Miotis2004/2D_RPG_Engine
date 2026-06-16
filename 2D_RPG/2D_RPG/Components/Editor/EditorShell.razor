@@ -30,7 +30,7 @@
             <h3>Tileset</h3>
             <p class="panel-note">@ActiveTileSet?.Name</p>
             <div class="tileset" aria-label="Sample tileset swatches">
-                @foreach (var tile in ActiveTileSet?.Tiles ?? [])
+                @foreach (var tile in ActiveTileSet?.Tiles ?? Enumerable.Empty<TileDefinition>())
                 {
                     <span class="tile-swatch @tile.CssClass" title="@tile.Name" aria-label="@tile.Name"></span>
                 }
@@ -81,7 +81,7 @@
 
     private IEnumerable<TilePlacement> GroundTiles => ActiveMap?.GetLayer("layer-ground")?.Tiles
         .OrderBy(tile => tile.Y)
-        .ThenBy(tile => tile.X) ?? [];
+        .ThenBy(tile => tile.X) ?? Enumerable.Empty<TilePlacement>();
 
     private void SelectMap(string mapId) => EditorState.ActiveMapId = mapId;
 

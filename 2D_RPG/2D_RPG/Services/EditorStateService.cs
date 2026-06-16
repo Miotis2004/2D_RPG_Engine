@@ -100,6 +100,19 @@ public sealed class EditorStateService
                 new() { Id = "layer-collision", Name = "Collision", Kind = MapLayerKind.Collision },
                 new() { Id = "layer-objects", Name = "Objects", Kind = MapLayerKind.Objects },
                 new() { Id = "layer-events", Name = "Events", Kind = MapLayerKind.Events }
+            ],
+            Objects =
+            [
+                new() { Id = "obj-town-gate", Name = "North Gate", Kind = MapObjectKind.Door, X = 10, Y = 3, IsBlocking = true, SpriteKey = "door", EventId = "event-gate-transfer" },
+                new() { Id = "obj-elder", Name = "Village Elder", Kind = MapObjectKind.Npc, X = 5, Y = 8, IsBlocking = true, SpriteKey = "npc", EventId = "event-elder-dialogue" },
+                new() { Id = "obj-supply-chest", Name = "Supply Chest", Kind = MapObjectKind.Chest, X = 14, Y = 9, IsBlocking = true, SpriteKey = "chest", EventId = "event-supply-chest" }
+            ],
+            Events =
+            [
+                new() { Id = "event-elder-dialogue", Name = "Elder Greeting", Trigger = EventTriggerKind.Interact, X = 5, Y = 8, Commands = [new() { Kind = EventCommandKind.Dialogue, Text = "Welcome to Oakvale." }] },
+                new() { Id = "event-supply-chest", Name = "Supply Reward", Trigger = EventTriggerKind.Interact, X = 14, Y = 9, Commands = [new() { Kind = EventCommandKind.ItemReward, ItemId = "item-potion", Quantity = 2 }] },
+                new() { Id = "event-gate-transfer", Name = "Gate Transfer", Trigger = EventTriggerKind.Touch, X = 10, Y = 3, Commands = [new() { Kind = EventCommandKind.TransferMap, TargetMapId = "map-oakvale-village", TargetX = 1, TargetY = 1 }] },
+                new() { Id = "event-oakvale-enter", Name = "Oakvale Arrival", Trigger = EventTriggerKind.EnterMap, ConditionExpression = "flag.intro_seen == false", Commands = [new() { Kind = EventCommandKind.Dialogue, Text = "You arrive at Oakvale Village." }] }
             ]
         };
     }

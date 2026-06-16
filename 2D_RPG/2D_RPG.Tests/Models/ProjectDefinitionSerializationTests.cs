@@ -27,5 +27,7 @@ public sealed class ProjectDefinitionSerializationTests
         Assert.Equal(restored.TileSets.Single().Id, restored.ActiveMap.TileSetId);
         Assert.Equal("layer-ground", restored.ActiveMap.GetLayer("layer-ground")?.Id);
         Assert.Equal(20 * 12, restored.ActiveMap.GetLayer("layer-ground")?.Tiles.Count);
+        Assert.Equal("obj-elder", restored.ActiveMap.Objects.Single(obj => obj.Name == "Village Elder").Id);
+        Assert.Equal(EventCommandKind.ItemReward, restored.ActiveMap.Events.Single(evt => evt.Id == "event-supply-chest").Commands.Single().Kind);
     }
 }

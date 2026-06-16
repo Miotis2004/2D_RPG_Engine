@@ -13,6 +13,8 @@ public sealed class EditorShellTests : TestContext
         var editorState = new EditorStateService();
         Services.AddSingleton(editorState);
         Services.AddSingleton<TileMapService>();
+        Services.AddSingleton<MapObjectService>();
+        Services.AddSingleton<ProjectValidationService>();
 
         var shell = RenderComponent<EditorShell>();
 

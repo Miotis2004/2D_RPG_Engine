@@ -93,7 +93,8 @@ public sealed class TileMapService
             return true;
         }
 
-        return map.Layers.Any(layer => layer.Kind == MapLayerKind.Collision && GetTile(layer, x, y) is not null);
+        return map.Layers.Any(layer => layer.Kind == MapLayerKind.Collision && GetTile(layer, x, y) is not null)
+            || map.Objects.Any(obj => obj.IsBlocking && obj.X == x && obj.Y == y);
     }
 
     private static TilePlacement? GetTile(MapLayerDefinition layer, int x, int y) => layer.Tiles.FirstOrDefault(tile => tile.X == x && tile.Y == y);

@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSingleton<EditorStateService>();
 builder.Services.AddSingleton<TileMapService>();
+builder.Services.AddSingleton<MapObjectService>();
+builder.Services.AddSingleton<ProjectValidationService>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

@@ -45,25 +45,7 @@
             <MapCanvas Map="ActiveMap" TileSet="ActiveTileSet" />
         </main>
 
-        <aside class="inspector-panel">
-            <h2>Inspector</h2>
-            <label>Map name <input class="inspector-input" value="@ActiveMap?.Name" @onchange="RenameFromInput" /></label>
-            <label>Music cue <input class="inspector-input" value="@ActiveMap?.MusicCue" @onchange="UpdateMusic" /></label>
-            <h3>Layers</h3>
-            @foreach (var layer in ActiveMap?.Layers ?? Enumerable.Empty<MapLayerDefinition>())
-            {
-                <div class="layer-row @(layer.Id == EditorState.ToolState.ActiveLayerId ? "active" : null)">
-                    <button type="button" @onclick="() => EditorState.SetActiveLayer(layer.Id)">@layer.Name</button>
-                    <label><input type="checkbox" checked="@layer.IsVisible" @onchange="args => ToggleVisible(layer, args)" /> Visible</label>
-                    <label><input type="checkbox" checked="@layer.IsLocked" @onchange="args => ToggleLocked(layer, args)" /> Locked</label>
-                </div>
-            }
-            <dl>
-                <dt>Active layer</dt><dd>@EditorState.ToolState.ActiveLayerId</dd>
-                <dt>Selected tile</dt><dd>@EditorState.ToolState.SelectedTileId</dd>
-                <dt>Music</dt><dd>@ActiveMap?.MusicCue</dd>
-            </dl>
-        </aside>
+        <InspectorPanel Project="EditorState.CurrentProject" Map="ActiveMap" />
     </section>
 </div>
 
@@ -102,6 +84,8 @@
             Id = $"{layer.Id}-{clone.Id}", Name = layer.Name, Kind = layer.Kind, IsVisible = layer.IsVisible, IsLocked = layer.IsLocked,
             Tiles = layer.Tiles.Select(tile => new TilePlacement { X = tile.X, Y = tile.Y, TileId = tile.TileId }).ToList()
         }).ToList();
+        clone.Objects = ActiveMap.Objects.Select(obj => new MapObjectDefinition { Id = $"{obj.Id}-{clone.Id}", Name = obj.Name, Kind = obj.Kind, X = obj.X, Y = obj.Y, IsBlocking = obj.IsBlocking, SpriteKey = obj.SpriteKey, EventId = string.IsNullOrWhiteSpace(obj.EventId) ? string.Empty : $"{obj.EventId}-{clone.Id}", Properties = new Dictionary<string, string>(obj.Properties) }).ToList();
+        clone.Events = ActiveMap.Events.Select(evt => new MapEventDefinition { Id = $"{evt.Id}-{clone.Id}", Name = evt.Name, Trigger = evt.Trigger, X = evt.X, Y = evt.Y, ConditionExpression = evt.ConditionExpression, Commands = evt.Commands.Select(command => new EventCommandDefinition { Kind = command.Kind, Text = command.Text, ItemId = command.ItemId, Quantity = command.Quantity, TargetMapId = command.TargetMapId, TargetX = command.TargetX, TargetY = command.TargetY }).ToList() }).ToList();
         EditorState.CurrentProject.Maps.Add(clone);
         EditorState.ActiveMapId = clone.Id;
         EditorState.ToolState.ActiveLayerId = clone.Layers.First().Id;
@@ -128,5 +112,7 @@
         {
             layer.Tiles.RemoveAll(tile => !TileMapService.IsInBounds(map, tile.X, tile.Y));
         }
+        map.Objects.RemoveAll(obj => !TileMapService.IsInBounds(map, obj.X, obj.Y));
+        map.Events.RemoveAll(evt => evt.Trigger != EventTriggerKind.EnterMap && (evt.X is null || evt.Y is null || !TileMapService.IsInBounds(map, evt.X.Value, evt.Y.Value)));
     }
 }

@@ -1,0 +1,169 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+@inject MapObjectService MapObjects
+
+<aside class="inspector-panel">
+    <h2>Inspector</h2>
+    @if (Map is null)
+    {
+        <p>No active map.</p>
+    }
+    else
+    {
+        <label>Map name <input class="inspector-input" value="@Map.Name" @onchange="RenameMap" /></label>
+        <label>Music cue <input class="inspector-input" value="@Map.MusicCue" @onchange="UpdateMusic" /></label>
+
+        <h3>Placement Brushes</h3>
+        <label>Object brush
+            <select class="inspector-input" value="@EditorState.ToolState.ObjectBrush" @onchange="SetObjectBrush">
+                @foreach (var kind in Enum.GetValues<MapObjectKind>())
+                {
+                    <option value="@kind">@kind</option>
+                }
+            </select>
+        </label>
+        <label>Event trigger brush
+            <select class="inspector-input" value="@EditorState.ToolState.EventBrush" @onchange="SetEventBrush">
+                @foreach (var trigger in Enum.GetValues<EventTriggerKind>())
+                {
+                    <option value="@trigger">@trigger</option>
+                }
+            </select>
+        </label>
+
+        <h3>Selected Object</h3>
+        @if (SelectedObject is null)
+        {
+            <p class="panel-note">Select the Objects layer and click an object to edit it.</p>
+        }
+        else
+        {
+            <label>Name <input class="inspector-input" value="@SelectedObject.Name" @onchange="RenameObject" /></label>
+            <label>Kind
+                <select class="inspector-input" value="@SelectedObject.Kind" @onchange="SetObjectKind">
+                    @foreach (var kind in Enum.GetValues<MapObjectKind>())
+                    {
+                        <option value="@kind">@kind</option>
+                    }
+                </select>
+            </label>
+            <label><input type="checkbox" checked="@SelectedObject.IsBlocking" @onchange="ToggleObjectBlocking" /> Blocks movement</label>
+            <label>Sprite key <input class="inspector-input" value="@SelectedObject.SpriteKey" @onchange="SetSpriteKey" /></label>
+            <label>Linked event
+                <select class="inspector-input" value="@SelectedObject.EventId" @onchange="SetLinkedEvent">
+                    <option value="">None</option>
+                    @foreach (var evt in Map.Events)
+                    {
+                        <option value="@evt.Id">@evt.Name (@evt.Id)</option>
+                    }
+                </select>
+            </label>
+            <button type="button" class="tool danger" @onclick="DeleteSelectedObject">Delete object</button>
+        }
+
+        <h3>Selected Event</h3>
+        @if (SelectedEvent is null)
+        {
+            <p class="panel-note">Select the Events layer and click an event marker to edit it.</p>
+        }
+        else
+        {
+            <label>Name <input class="inspector-input" value="@SelectedEvent.Name" @onchange="RenameEvent" /></label>
+            <label>Trigger
+                <select class="inspector-input" value="@SelectedEvent.Trigger" @onchange="SetEventTrigger">
+                    @foreach (var trigger in Enum.GetValues<EventTriggerKind>())
+                    {
+                        <option value="@trigger">@trigger</option>
+                    }
+                </select>
+            </label>
+            <label>Condition <input class="inspector-input" value="@SelectedEvent.ConditionExpression" @onchange="SetCondition" /></label>
+            @for (var i = 0; i < SelectedEvent.Commands.Count; i++)
+            {
+                var index = i;
+                var command = SelectedEvent.Commands[index];
+                <div class="command-editor">
+                    <strong>Command @(index + 1)</strong>
+                    <label>Type
+                        <select class="inspector-input" value="@command.Kind" @onchange="args => SetCommandKind(index, args)">
+                            @foreach (var kind in Enum.GetValues<EventCommandKind>())
+                            {
+                                <option value="@kind">@kind</option>
+                            }
+                        </select>
+                    </label>
+                    @if (command.Kind == EventCommandKind.Dialogue)
+                    {
+                        <label>Dialogue <input class="inspector-input" value="@command.Text" @onchange="args => SetCommandText(index, args)" /></label>
+                    }
+                    else if (command.Kind == EventCommandKind.ItemReward)
+                    {
+                        <label>Item ID <input class="inspector-input" value="@command.ItemId" @onchange="args => SetCommandItem(index, args)" /></label>
+                        <label>Quantity <input class="inspector-input" type="number" value="@command.Quantity" @onchange="args => SetCommandQuantity(index, args)" /></label>
+                    }
+                    else if (command.Kind == EventCommandKind.TransferMap)
+                    {
+                        <label>Target map
+                            <select class="inspector-input" value="@command.TargetMapId" @onchange="args => SetCommandTargetMap(index, args)">
+                                @foreach (var map in Project.Maps)
+                                {
+                                    <option value="@map.Id">@map.Name</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Target X <input class="inspector-input" type="number" value="@command.TargetX" @onchange="args => SetCommandTargetX(index, args)" /></label>
+                        <label>Target Y <input class="inspector-input" type="number" value="@command.TargetY" @onchange="args => SetCommandTargetY(index, args)" /></label>
+                    }
+                </div>
+            }
+            <button type="button" class="tool" @onclick="AddCommand">Add command</button>
+            <button type="button" class="tool danger" @onclick="DeleteSelectedEvent">Delete event</button>
+        }
+
+        <h3>Layers</h3>
+        @foreach (var layer in Map.Layers)
+        {
+            <div class="layer-row @(layer.Id == EditorState.ToolState.ActiveLayerId ? "active" : null)">
+                <button type="button" @onclick="() => EditorState.SetActiveLayer(layer.Id)">@layer.Name</button>
+                <label><input type="checkbox" checked="@layer.IsVisible" @onchange="args => ToggleVisible(layer, args)" /> Visible</label>
+                <label><input type="checkbox" checked="@layer.IsLocked" @onchange="args => ToggleLocked(layer, args)" /> Locked</label>
+            </div>
+        }
+    }
+</aside>
+
+@code {
+    [Parameter, EditorRequired] public ProjectDefinition Project { get; set; } = default!;
+    [Parameter] public MapDefinition? Map { get; set; }
+
+    private MapObjectDefinition? SelectedObject => Map?.Objects.FirstOrDefault(obj => obj.Id == EditorState.ToolState.SelectedObjectId);
+    private MapEventDefinition? SelectedEvent => Map?.Events.FirstOrDefault(evt => evt.Id == EditorState.ToolState.SelectedEventId);
+
+    private void Dirty() => EditorState.MarkDirty();
+    private void RenameMap(ChangeEventArgs args) { if (Map is not null) { Map.Name = args.Value?.ToString() ?? Map.Name; Dirty(); } }
+    private void UpdateMusic(ChangeEventArgs args) { if (Map is not null) { Map.MusicCue = args.Value?.ToString() ?? string.Empty; Dirty(); } }
+    private void SetObjectBrush(ChangeEventArgs args) { if (Enum.TryParse<MapObjectKind>(args.Value?.ToString(), out var kind)) EditorState.ToolState.ObjectBrush = kind; }
+    private void SetEventBrush(ChangeEventArgs args) { if (Enum.TryParse<EventTriggerKind>(args.Value?.ToString(), out var trigger)) EditorState.ToolState.EventBrush = trigger; }
+    private void RenameObject(ChangeEventArgs args) { if (SelectedObject is not null) { SelectedObject.Name = args.Value?.ToString() ?? SelectedObject.Name; Dirty(); } }
+    private void SetObjectKind(ChangeEventArgs args) { if (SelectedObject is not null && Enum.TryParse<MapObjectKind>(args.Value?.ToString(), out var kind)) { SelectedObject.Kind = kind; Dirty(); } }
+    private void ToggleObjectBlocking(ChangeEventArgs args) { if (SelectedObject is not null) { SelectedObject.IsBlocking = args.Value is true; Dirty(); } }
+    private void SetSpriteKey(ChangeEventArgs args) { if (SelectedObject is not null) { SelectedObject.SpriteKey = args.Value?.ToString() ?? string.Empty; Dirty(); } }
+    private void SetLinkedEvent(ChangeEventArgs args) { if (SelectedObject is not null) { SelectedObject.EventId = args.Value?.ToString() ?? string.Empty; EditorState.ToolState.SelectedEventId = SelectedObject.EventId.Length > 0 ? SelectedObject.EventId : null; Dirty(); } }
+    private void DeleteSelectedObject() { if (Map is not null && SelectedObject is not null && MapObjects.DeleteObject(Map, SelectedObject.Id)) { EditorState.ToolState.SelectedObjectId = null; Dirty(); } }
+    private void RenameEvent(ChangeEventArgs args) { if (SelectedEvent is not null) { SelectedEvent.Name = args.Value?.ToString() ?? SelectedEvent.Name; Dirty(); } }
+    private void SetEventTrigger(ChangeEventArgs args) { if (SelectedEvent is not null && Enum.TryParse<EventTriggerKind>(args.Value?.ToString(), out var trigger)) { SelectedEvent.Trigger = trigger; if (trigger == EventTriggerKind.EnterMap) { SelectedEvent.X = null; SelectedEvent.Y = null; } Dirty(); } }
+    private void SetCondition(ChangeEventArgs args) { if (SelectedEvent is not null) { SelectedEvent.ConditionExpression = args.Value?.ToString() ?? string.Empty; Dirty(); } }
+    private void AddCommand() { if (SelectedEvent is not null) { SelectedEvent.Commands.Add(MapObjectService.CreateDefaultCommand(SelectedEvent.Trigger)); Dirty(); } }
+    private void DeleteSelectedEvent() { if (Map is not null && SelectedEvent is not null && MapObjects.DeleteEvent(Map, SelectedEvent.Id)) { EditorState.ToolState.SelectedEventId = null; Dirty(); } }
+    private void SetCommandKind(int index, ChangeEventArgs args) { if (Command(index) is { } command && Enum.TryParse<EventCommandKind>(args.Value?.ToString(), out var kind)) { command.Kind = kind; Dirty(); } }
+    private void SetCommandText(int index, ChangeEventArgs args) { if (Command(index) is { } command) { command.Text = args.Value?.ToString() ?? string.Empty; Dirty(); } }
+    private void SetCommandItem(int index, ChangeEventArgs args) { if (Command(index) is { } command) { command.ItemId = args.Value?.ToString() ?? string.Empty; Dirty(); } }
+    private void SetCommandQuantity(int index, ChangeEventArgs args) { if (Command(index) is { } command && int.TryParse(args.Value?.ToString(), out var quantity)) { command.Quantity = quantity; Dirty(); } }
+    private void SetCommandTargetMap(int index, ChangeEventArgs args) { if (Command(index) is { } command) { command.TargetMapId = args.Value?.ToString() ?? string.Empty; Dirty(); } }
+    private void SetCommandTargetX(int index, ChangeEventArgs args) { if (Command(index) is { } command && int.TryParse(args.Value?.ToString(), out var x)) { command.TargetX = x; Dirty(); } }
+    private void SetCommandTargetY(int index, ChangeEventArgs args) { if (Command(index) is { } command && int.TryParse(args.Value?.ToString(), out var y)) { command.TargetY = y; Dirty(); } }
+    private EventCommandDefinition? Command(int index) => SelectedEvent?.Commands.ElementAtOrDefault(index);
+    private void ToggleVisible(MapLayerDefinition layer, ChangeEventArgs args) { layer.IsVisible = args.Value is true; Dirty(); }
+    private void ToggleLocked(MapLayerDefinition layer, ChangeEventArgs args) { layer.IsLocked = args.Value is true; Dirty(); }
+}

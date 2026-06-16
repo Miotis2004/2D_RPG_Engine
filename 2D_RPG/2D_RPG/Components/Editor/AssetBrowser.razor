@@ -1,0 +1,81 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject AssetCatalogService AssetCatalog
+
+<section class="asset-browser" aria-label="Asset browser">
+    <div class="asset-browser-header">
+        <div>
+            <p class="eyebrow">Assets</p>
+            <h2>Asset Browser</h2>
+        </div>
+        <button type="button" class="tool compact" @onclick="ImportAsset">Import sample</button>
+    </div>
+
+    <div class="asset-import-grid">
+        <label>Name <input value="@newAssetName" @onchange="args => newAssetName = args.Value?.ToString() ?? string.Empty" /></label>
+        <label>Kind <select value="@newAssetKind" @onchange="args => newAssetKind = Enum.Parse<AssetKind>(args.Value?.ToString() ?? nameof(AssetKind.Other))">@foreach (var kind in Enum.GetValues<AssetKind>()) { <option value="@kind">@kind</option> }</select></label>
+        <label>File <input value="@newAssetFile" @onchange="args => newAssetFile = args.Value?.ToString() ?? string.Empty" /></label>
+    </div>
+
+    @if (Diagnostics.Count > 0)
+    {
+        <ul class="asset-diagnostics" role="alert">
+            @foreach (var diagnostic in Diagnostics)
+            {
+                <li>@diagnostic.Message</li>
+            }
+        </ul>
+    }
+
+    <div class="asset-list">
+        @foreach (var asset in Project.Assets)
+        {
+            <article class="asset-card">
+                <div>
+                    <strong>@asset.Name</strong>
+                    <span>@asset.Kind · @asset.SourcePath</span>
+                    <small>@(asset.Tags.Count == 0 ? "No tags" : string.Join(", ", asset.Tags))</small>
+                </div>
+                <label class="asset-edit">Rename <input value="@asset.Name" @onchange="args => RenameAsset(asset, args.Value?.ToString())" /></label>
+                <label class="asset-edit">Tags <input value="@string.Join(", ", asset.Tags)" @onchange="args => UpdateTags(asset, args.Value?.ToString() ?? string.Empty)" /></label>
+                <button type="button" class="tool danger compact" @onclick="() => DeleteAsset(asset.Id)">Delete</button>
+            </article>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public ProjectDefinition Project { get; set; } = default!;
+    [Parameter] public EventCallback Changed { get; set; }
+    [Parameter] public Func<string, bool>? FileExists { get; set; }
+
+    private string newAssetName = "Imported Asset";
+    private AssetKind newAssetKind = AssetKind.SpriteSheet;
+    private string newAssetFile = "imported-sprite.png";
+
+    private IReadOnlyList<AssetValidationDiagnostic> Diagnostics => AssetCatalog.Validate(Project, FileExists);
+
+    private async Task ImportAsset()
+    {
+        AssetCatalog.Import(Project, newAssetName, newAssetKind, newAssetFile, 32, 32, ["imported"]);
+        await Changed.InvokeAsync();
+    }
+
+    private async Task RenameAsset(AssetDefinition asset, string? name)
+    {
+        AssetCatalog.Rename(asset, name ?? string.Empty);
+        await Changed.InvokeAsync();
+    }
+
+    private async Task UpdateTags(AssetDefinition asset, string tags)
+    {
+        AssetCatalog.SetTags(asset, tags);
+        await Changed.InvokeAsync();
+    }
+
+    private async Task DeleteAsset(string assetId)
+    {
+        AssetCatalog.Delete(Project, assetId);
+        await Changed.InvokeAsync();
+    }
+}

@@ -12,6 +12,8 @@ builder.Services.AddSingleton<AssetCatalogService>();
 builder.Services.AddSingleton<RuntimeEngineService>();
 builder.Services.AddSingleton<CombatService>();
 builder.Services.AddSingleton<AnimationService>();
+builder.Services.AddSingleton<MenuService>();
+builder.Services.AddSingleton<ProjectPersistenceService>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

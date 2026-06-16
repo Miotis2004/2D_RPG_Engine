@@ -65,9 +65,29 @@ public sealed class EditorStateService
             ],
             Animations = [CreateHeroAnimation()],
             Encounters = [CreateSampleEncounter()],
+            Items = CreateSampleMenuCatalog().Items,
+            Spells = CreateSampleMenuCatalog().Spells,
+            Quests = CreateSampleMenuCatalog().Quests,
             Maps = [CreateSampleMap(tileSet.Id)]
         };
     }
+    public static (List<ItemDefinition> Items, List<SpellDefinition> Spells, List<QuestDefinition> Quests) CreateSampleMenuCatalog() =>
+    (
+        [
+            new() { Id = "item-potion", Name = "Potion", Kind = ItemKind.Consumable, MaxStack = 10, HpRestore = 50, Description = "Restores 50 HP to one ally." },
+            new() { Id = "item-ether", Name = "Ether", Kind = ItemKind.Consumable, MaxStack = 5, MpRestore = 20, Description = "Restores 20 MP to one ally." },
+            new() { Id = "item-bronze-sword", Name = "Bronze Sword", Kind = ItemKind.Weapon, MaxStack = 1, EquipmentSlot = EquipmentSlotKind.Weapon, Description = "A reliable starter blade." },
+            new() { Id = "item-travel-cloak", Name = "Travel Cloak", Kind = ItemKind.Armor, MaxStack = 1, EquipmentSlot = EquipmentSlotKind.Armor, Description = "Light armor for long roads." }
+        ],
+        [
+            new() { Id = "spark", Name = "Spark", MpCost = 4, Description = "A quick bolt of elemental damage." },
+            new() { Id = "mend", Name = "Mend", MpCost = 6, Description = "Restores a small amount of HP." }
+        ],
+        [
+            new() { Id = "quest-oakvale-help", Name = "Help the Elder", Description = "Speak with the elder and recover supplies from the village chest.", RequiredFlag = "intro_seen", CompletionFlag = "elder_helped" },
+            new() { Id = "quest-north-road", Name = "Open the North Road", Description = "Find a way through the blocked north gate.", RequiredFlag = "elder_helped", CompletionFlag = "north_gate_open" }
+        ]
+    );
 
     private static AnimationDefinition CreateHeroAnimation()
     {

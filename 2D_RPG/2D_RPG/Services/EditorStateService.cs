@@ -57,6 +57,12 @@ public sealed class EditorStateService
         return new ProjectDefinition
         {
             TileSets = [tileSet],
+            Assets =
+            [
+                new() { Id = "asset-oakvale-fields", Name = "Oakvale Fields Tileset", Kind = AssetKind.TileSet, SourcePath = tileSet.SourcePath, Width = 192, Height = 32, FrameWidth = 32, FrameHeight = 32, Tags = ["terrain", "field"] },
+                new() { Id = "asset-village-npcs", Name = "Village NPCs", Kind = AssetKind.SpriteSheet, SourcePath = "assets/spritesheets/village-npcs.png", Width = 128, Height = 192, FrameWidth = 32, FrameHeight = 48, Tags = ["npc", "village"] },
+                new() { Id = "asset-oakvale-theme", Name = "Oakvale Theme", Kind = AssetKind.Audio, SourcePath = "assets/audio/oakvale-theme.ogg", Tags = ["music", "village"] }
+            ],
             Maps = [CreateSampleMap(tileSet.Id)]
         };
     }

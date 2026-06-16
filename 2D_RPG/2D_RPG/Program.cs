@@ -1,8 +1,11 @@
 using _2D_RPG.Components;
+using _2D_RPG.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<EditorStateService>();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

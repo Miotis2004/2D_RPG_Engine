@@ -599,3 +599,82 @@ pre {
         grid-template-columns: 1fr;
     }
 }
+
+.asset-browser {
+    margin-top: 1rem;
+    border-top: 1px solid var(--rpg-line);
+    padding-top: 1rem;
+}
+
+.asset-browser-header,
+.asset-card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.asset-browser h2 {
+    font-size: 1.05rem;
+}
+
+.asset-import-grid,
+.asset-list {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.asset-import-grid label,
+.asset-edit {
+    display: grid;
+    gap: 0.25rem;
+    color: var(--rpg-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.asset-import-grid input,
+.asset-import-grid select,
+.asset-edit input {
+    width: 100%;
+    border: 1px solid var(--rpg-line);
+    border-radius: 0.45rem;
+    padding: 0.45rem;
+    background: #0b1020;
+    color: var(--rpg-text);
+}
+
+.asset-card {
+    flex-direction: column;
+    border: 1px solid var(--rpg-line);
+    border-radius: 0.7rem;
+    padding: 0.75rem;
+    background: rgba(32, 42, 66, 0.72);
+}
+
+.asset-card span,
+.asset-card small {
+    display: block;
+    color: var(--rpg-muted);
+    overflow-wrap: anywhere;
+}
+
+.asset-diagnostics {
+    margin: 0.75rem 0;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    border-radius: 0.7rem;
+    padding: 0.75rem 0.75rem 0.75rem 1.8rem;
+    background: rgba(127, 29, 29, 0.28);
+    color: #fecaca;
+}
+
+.tool.compact {
+    width: auto;
+    margin-bottom: 0;
+    padding: 0.45rem 0.65rem;
+}
+
+.tool.danger {
+    border-color: rgba(248, 113, 113, 0.45);
+    color: #fecaca;
+}

@@ -4,6 +4,8 @@ namespace _2D_RPG.Services;
 
 public sealed class ProjectValidationService
 {
+    private readonly AssetCatalogService assetCatalog = new();
+
     public IReadOnlyList<string> Validate(ProjectDefinition project)
     {
         var errors = new List<string>();
@@ -12,6 +14,8 @@ public sealed class ProjectValidationService
         {
             ValidateMap(map, mapIds, errors);
         }
+
+        errors.AddRange(assetCatalog.Validate(project).Select(diagnostic => diagnostic.Message));
         return errors;
     }
 

@@ -870,3 +870,53 @@ pre {
         grid-template-columns: 1fr;
     }
 }
+
+.diagnostics-panel {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(125, 211, 252, 0.32);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    background: rgba(7, 11, 20, 0.62);
+}
+
+.diagnostics-panel h2,
+.diagnostics-panel p,
+.diagnostics-panel ul {
+    margin: 0;
+}
+
+.diagnostics-panel ul {
+    padding-left: 1.25rem;
+    color: #fecaca;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--rpg-gold);
+    outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+    .content {
+        padding: 0.75rem;
+    }
+
+    .editor-toolbar,
+    .toolbar-actions,
+    .stage-toolbar,
+    .map-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .toolbar-actions .tool,
+    .map-actions .tool {
+        width: 100%;
+    }
+}

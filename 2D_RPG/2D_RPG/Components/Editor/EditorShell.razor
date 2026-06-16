@@ -2,6 +2,7 @@
 @using _2D_RPG.Services
 @inject EditorStateService EditorState
 @inject TileMapService TileMap
+@inject ProjectValidationService Validation
 
 <PageTitle>@EditorState.CurrentProject.Name - Editor</PageTitle>
 
@@ -43,6 +44,29 @@
                 <strong>@ActiveMap?.Name</strong>
                 <span>@ActiveMap?.TileWidth px tiles · @ActiveMap?.Width × @ActiveMap?.Height map · @EditorState.ToolState.ActiveTool</span>
             </div>
+            <section class="diagnostics-panel" aria-labelledby="diagnostics-heading" aria-live="polite">
+                <div>
+                    <p class="eyebrow">Release diagnostics</p>
+                    <h2 id="diagnostics-heading">@ValidationSummary</h2>
+                </div>
+                @if (ValidationMessages.Count == 0)
+                {
+                    <p class="panel-note">No blocking project validation issues detected.</p>
+                }
+                else
+                {
+                    <ul>
+                        @foreach (var message in ValidationMessages.Take(5))
+                        {
+                            <li>@message</li>
+                        }
+                    </ul>
+                    @if (ValidationMessages.Count > 5)
+                    {
+                        <p class="panel-note">+@(ValidationMessages.Count - 5) more diagnostics. Open the inspector and asset browser to resolve them.</p>
+                    }
+                }
+            </section>
             <MapCanvas Map="ActiveMap" TileSet="ActiveTileSet" />
         </main>
 
@@ -53,6 +77,8 @@
 @code {
     private MapDefinition? ActiveMap => EditorState.ActiveMap;
     private TileSetDefinition? ActiveTileSet => EditorState.CurrentProject.TileSets.FirstOrDefault(tileSet => tileSet.Id == ActiveMap?.TileSetId);
+    private IReadOnlyList<string> ValidationMessages => Validation.Validate(EditorState.CurrentProject);
+    private string ValidationSummary => ValidationMessages.Count == 0 ? "Ready for release validation" : $"{ValidationMessages.Count} issue(s) to fix";
 
     private void SelectMap(string mapId)
     {

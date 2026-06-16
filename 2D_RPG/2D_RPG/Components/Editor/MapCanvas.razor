@@ -4,7 +4,7 @@
 @inject TileMapService TileMap
 @inject MapObjectService MapObjects
 
-<div class="map-canvas" style="--map-width:@(Map?.Width ?? 1); --zoom:@EditorState.ToolState.Zoom" aria-label="Interactive map canvas">
+<div class="map-canvas" style="--map-width:@(Map?.Width ?? 1); --zoom:@EditorState.ToolState.Zoom" role="grid" aria-label="Interactive map canvas">
     @if (Map is not null)
     {
         @for (var y = 0; y < Map.Height; y++)
@@ -16,7 +16,7 @@
                 var tileClass = GetTileClass(tileX, tileY);
                 var objectAtTile = MapObjects.GetObjectAt(Map, tileX, tileY);
                 var eventAtTile = MapObjects.GetEventAt(Map, tileX, tileY);
-                <button type="button" class="map-tile paintable @tileClass @GetOverlayClass(objectAtTile, eventAtTile)" aria-label="Tile @tileX,@tileY" @onclick="() => ApplyTool(tileX, tileY)">
+                <button type="button" class="map-tile paintable @tileClass @GetOverlayClass(objectAtTile, eventAtTile)" role="gridcell" aria-label="Tile @tileX,@tileY using @EditorState.ToolState.ActiveTool tool" title="Tile @tileX,@tileY" @onclick="() => ApplyTool(tileX, tileY)">
                     @if (objectAtTile is not null)
                     {
                         <span class="object-marker">@ObjectIcon(objectAtTile.Kind)</span>

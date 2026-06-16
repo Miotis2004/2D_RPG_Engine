@@ -782,3 +782,51 @@ pre {
     content: "(" var(--sprite-x, 0px) "," var(--sprite-y, 0px) ")";
     font-size: 0.55rem;
 }
+
+.combat-runtime {
+    margin: 1.5rem 0;
+    border: 1px solid var(--rpg-line);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(24, 32, 51, 0.86);
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28);
+}
+
+.combat-runtime-layout {
+    display: grid;
+    grid-template-columns: minmax(28rem, 1fr) 20rem;
+    gap: 1rem;
+}
+
+.combatant {
+    display: grid;
+    gap: 0.2rem;
+    color: var(--rpg-text);
+    text-align: left;
+}
+
+.combatant:disabled {
+    cursor: not-allowed;
+}
+
+.combatant:not(:disabled):hover,
+.combatant.active-turn {
+    border-color: var(--rpg-gold);
+    box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.25);
+}
+
+.party-combatant { left: 12%; }
+.enemy-combatant { right: 12%; }
+.lane-0 { bottom: 26%; }
+.lane-1 { bottom: 52%; }
+.lane-2 { bottom: 40%; }
+.enemy-combatant.lane-0 { right: 26%; }
+.enemy-combatant.lane-1 { right: 10%; }
+.defeated { opacity: 0.45; filter: grayscale(1); }
+.combat-command-panel .tool:disabled { opacity: 0.45; }
+
+@media (max-width: 1100px) {
+    .combat-runtime-layout {
+        grid-template-columns: 1fr;
+    }
+}

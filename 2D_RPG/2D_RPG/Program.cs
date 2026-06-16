@@ -10,6 +10,7 @@ builder.Services.AddSingleton<MapObjectService>();
 builder.Services.AddSingleton<ProjectValidationService>();
 builder.Services.AddSingleton<AssetCatalogService>();
 builder.Services.AddSingleton<RuntimeEngineService>();
+builder.Services.AddSingleton<CombatService>();
 builder.Services.AddSingleton<AnimationService>();
 
 builder.Services.AddRazorComponents()

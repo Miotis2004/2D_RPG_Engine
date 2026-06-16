@@ -64,6 +64,7 @@ public sealed class EditorStateService
                 new() { Id = "asset-oakvale-theme", Name = "Oakvale Theme", Kind = AssetKind.Audio, SourcePath = "assets/audio/oakvale-theme.ogg", Tags = ["music", "village"] }
             ],
             Animations = [CreateHeroAnimation()],
+            Encounters = [CreateSampleEncounter()],
             Maps = [CreateSampleMap(tileSet.Id)]
         };
     }
@@ -104,6 +105,32 @@ public sealed class EditorStateService
             ]
         };
     }
+
+
+    private static EncounterDefinition CreateSampleEncounter() => new()
+    {
+        Id = "encounter-oakvale-road",
+        Name = "Oakvale Road Ambush",
+        BackgroundCssClass = "forest-battle",
+        RewardExperience = 18,
+        RewardGold = 12,
+        Party =
+        [
+            new() { Id = "party-hero", Name = "Hero", Team = CombatTeam.Party, Lane = 0, AnimationId = "anim-hero-explorer", Stats = new() { MaxHp = 120, MaxMp = 24, Attack = 18, Defense = 8, Speed = 14 } },
+            new() { Id = "party-mage", Name = "Mage", Team = CombatTeam.Party, Lane = 1, AnimationId = "anim-hero-explorer", Stats = new() { MaxHp = 82, MaxMp = 42, Attack = 13, Defense = 5, Speed = 11 } }
+        ],
+        Enemies =
+        [
+            new() { Id = "enemy-slime", Name = "Slime", Team = CombatTeam.Enemy, Lane = 0, Stats = new() { MaxHp = 46, MaxMp = 0, Attack = 9, Defense = 3, Speed = 7 } },
+            new() { Id = "enemy-goblin", Name = "Goblin", Team = CombatTeam.Enemy, Lane = 1, Stats = new() { MaxHp = 64, MaxMp = 8, Attack = 14, Defense = 5, Speed = 12 } }
+        ],
+        Commands =
+        [
+            new() { Id = "attack", Name = "Attack", Kind = CombatCommandKind.Attack, Targeting = TargetingRule.SingleEnemy, PowerMultiplier = 1, AnimationKind = AnimationClipKind.Attack },
+            new() { Id = "firebolt", Name = "Firebolt", Kind = CombatCommandKind.Skill, Targeting = TargetingRule.SingleEnemy, MpCost = 5, PowerMultiplier = 1.6, AppliesStatus = CombatStatusEffectKind.Poison, StatusDurationTurns = 2, AnimationKind = AnimationClipKind.Cast },
+            new() { Id = "guard", Name = "Guard", Kind = CombatCommandKind.Defend, Targeting = TargetingRule.Self }
+        ]
+    };
 
     private static MapDefinition CreateSampleMap(string tileSetId)
     {

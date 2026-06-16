@@ -1,0 +1,103 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+@inject CombatService Combat
+
+<section class="combat-runtime" aria-labelledby="combat-runtime-title">
+    <header class="runtime-header">
+        <div>
+            <p class="eyebrow">Combat Runtime</p>
+            <h2 id="combat-runtime-title">Turn-based battle preview</h2>
+            <p>Side-view lanes, target filtering, HP/MP costs, status effects, turn order, and victory rewards are resolved by CombatService.</p>
+        </div>
+        <button type="button" class="tool" @onclick="Restart">Restart encounter</button>
+    </header>
+
+    @if (Combat.State.Encounter is not null)
+    {
+        <div class="combat-runtime-layout">
+            <div class="battle-stage @Combat.State.Encounter.BackgroundCssClass" aria-label="Combat stage">
+                @foreach (var actor in Combat.State.Actors)
+                {
+                    <button type="button"
+                            class="fighter combatant @(actor.Team == CombatTeam.Party ? "party-combatant" : "enemy-combatant") lane-@actor.Lane @(actor.Id == Combat.State.ActiveActorId ? "active-turn" : null) @(!actor.IsAlive ? "defeated" : null)"
+                            disabled="@(!CanTarget(actor))"
+                            @onclick="() => SelectTarget(actor.Id)">
+                        <strong>@actor.Name</strong>
+                        <span>HP @actor.Hp/@actor.Stats.MaxHp</span>
+                        <span>MP @actor.Mp/@actor.Stats.MaxMp</span>
+                        @if (actor.StatusEffects.Count > 0)
+                        {
+                            <small>@string.Join(", ", actor.StatusEffects.Select(status => $"{status.Kind}:{status.RemainingTurns}"))</small>
+                        }
+                    </button>
+                }
+                <div class="battle-menu">@StatusText</div>
+            </div>
+
+            <aside class="runtime-panel combat-command-panel">
+                <h3>Active turn</h3>
+                <p>@(ActiveActor?.Name ?? "No active actor")</p>
+                <h3>Commands</h3>
+                @foreach (var command in Combat.State.Encounter.Commands)
+                {
+                    <button type="button" class="tool @(selectedCommandId == command.Id ? "active" : null)" disabled="@(!CanUse(command))" @onclick="() => SelectCommand(command.Id)">
+                        @command.Name @(command.MpCost > 0 ? $"({command.MpCost} MP)" : string.Empty)
+                    </button>
+                }
+                <h3>Valid targets</h3>
+                <p>@TargetSummary</p>
+                <h3>Battle log</h3>
+                <ul>
+                    @foreach (var entry in Combat.State.Log.TakeLast(5).Reverse())
+                    {
+                        <li>@entry.Text</li>
+                    }
+                </ul>
+            </aside>
+        </div>
+    }
+</section>
+
+@code {
+    private string selectedCommandId = "attack";
+    private CombatActorState? ActiveActor => Combat.State.Actors.FirstOrDefault(actor => actor.Id == Combat.State.ActiveActorId);
+    private CombatCommandDefinition? SelectedCommand => Combat.State.Encounter?.Commands.FirstOrDefault(command => command.Id == selectedCommandId);
+    private string StatusText => Combat.State.Phase switch
+    {
+        CombatPhase.Victory => $"Victory · +{Combat.State.ExperienceAwarded} XP · {Combat.State.GoldAwarded} gold",
+        CombatPhase.Defeat => "Defeat",
+        _ => $"Turn: {ActiveActor?.Name ?? "None"}"
+    };
+    private string TargetSummary => ActiveActor is null || SelectedCommand is null ? "Choose a command." : string.Join(", ", Combat.GetValidTargets(SelectedCommand, ActiveActor).Select(actor => actor.Name));
+
+    protected override void OnInitialized() => Restart();
+
+    private void Restart()
+    {
+        var encounter = EditorState.CurrentProject.Encounters.FirstOrDefault();
+        if (encounter is not null) Combat.StartEncounter(encounter);
+        selectedCommandId = "attack";
+    }
+
+    private void SelectCommand(string commandId)
+    {
+        selectedCommandId = commandId;
+        var command = SelectedCommand;
+        if (command?.Targeting == TargetingRule.Self && ActiveActor is not null)
+        {
+            Combat.ExecuteCommand(command.Id, ActiveActor.Id);
+        }
+    }
+
+    private void SelectTarget(string actorId)
+    {
+        if (SelectedCommand is not null && CanTarget(Combat.State.Actors.First(actor => actor.Id == actorId)))
+        {
+            Combat.ExecuteCommand(SelectedCommand.Id, actorId);
+        }
+    }
+
+    private bool CanUse(CombatCommandDefinition command) => ActiveActor is not null && ActiveActor.Mp >= command.MpCost && Combat.State.Phase == CombatPhase.AwaitingCommand;
+    private bool CanTarget(CombatActorState actor) => ActiveActor is not null && SelectedCommand is not null && Combat.GetValidTargets(SelectedCommand, ActiveActor).Any(target => target.Id == actor.Id);
+}

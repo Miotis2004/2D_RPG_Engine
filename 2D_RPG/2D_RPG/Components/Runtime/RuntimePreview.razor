@@ -8,7 +8,7 @@
         <div>
             <p class="eyebrow">Exploration Runtime</p>
             <h2 id="runtime-title">Playable map preview</h2>
-            <p>Use the controls, WASD, or arrow keys to move. Press Space or Enter to interact.</p>
+            <p>Use the controls, WASD, or arrow keys to move. Press Space or Enter to interact. The preview advances spritesheet clips in milliseconds.</p>
         </div>
         <button type="button" class="tool" @onclick="Restart">Restart playtest</button>
     </header>
@@ -26,7 +26,7 @@
                         <div class="map-tile @GetTileClass(tileX, tileY) @(TileMapService.IsBlocked(Runtime.State.Map, tileX, tileY) ? "runtime-blocked" : null)">
                             @if (Runtime.State.Player.X == tileX && Runtime.State.Player.Y == tileY)
                             {
-                                <span class="runtime-player" aria-label="Player">@PlayerIcon</span>
+                                <span class="runtime-player runtime-sprite" aria-label="Player" style="@PlayerFrameStyle">@PlayerIcon</span>
                             }
                             else if (Runtime.State.Map.Objects.FirstOrDefault(obj => obj.X == tileX && obj.Y == tileY) is { } obj)
                             {
@@ -56,12 +56,26 @@
                 </ul>
                 <h3>Inventory</h3>
                 <p>@(Runtime.State.Inventory.Count == 0 ? "No rewards collected." : string.Join(", ", Runtime.State.Inventory))</p>
+                <h3>Animation</h3>
+                <p>@Runtime.State.Player.Animation.Kind / @Runtime.State.Player.Animation.Direction / frame @Runtime.State.Player.Animation.FrameIndex</p>
+                <button type="button" class="tool compact" @onclick="AdvanceAnimation">Advance 140ms</button>
             </aside>
         </div>
     }
 </section>
 
 @code {
+    private string PlayerFrameStyle
+    {
+        get
+        {
+            var frame = Runtime.GetPlayerAnimationFrame();
+            return frame is null
+                ? string.Empty
+                : $"--sprite-x:{frame.X}px;--sprite-y:{frame.Y}px;--sprite-w:{frame.Width}px;--sprite-h:{frame.Height}px;";
+        }
+    }
+
     private string PlayerIcon => Runtime.State.Player.Facing switch
     {
         RuntimeDirection.Up => "▲",
@@ -75,6 +89,7 @@
     private void Restart() => Runtime.StartSession(EditorState.CurrentProject, EditorState.ActiveMapId);
     private void Move(int dx, int dy) => Runtime.MovePlayer(dx, dy);
     private void Interact() => Runtime.Interact();
+    private void AdvanceAnimation() => Runtime.AdvanceAnimations(TimeSpan.FromMilliseconds(140));
 
     private void HandleKeyDown(KeyboardEventArgs args)
     {

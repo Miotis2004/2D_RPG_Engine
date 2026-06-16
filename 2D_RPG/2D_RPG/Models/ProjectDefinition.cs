@@ -12,6 +12,7 @@ public sealed class ProjectDefinition
     public string ActiveMapId { get; set; } = "map-oakvale-village";
     public List<TileSetDefinition> TileSets { get; set; } = [];
     public List<AssetDefinition> Assets { get; set; } = [];
+    public List<AnimationDefinition> Animations { get; set; } = [];
     public List<MapDefinition> Maps { get; set; } = [];
 
     [JsonIgnore]

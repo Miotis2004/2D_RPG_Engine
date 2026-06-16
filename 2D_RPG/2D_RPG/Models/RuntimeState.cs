@@ -15,6 +15,7 @@ public sealed class RuntimeActorState
     public int X { get; set; }
     public int Y { get; set; }
     public RuntimeDirection Facing { get; set; } = RuntimeDirection.Down;
+    public AnimationPlaybackState Animation { get; set; } = new();
 }
 
 public sealed class RuntimeMessage

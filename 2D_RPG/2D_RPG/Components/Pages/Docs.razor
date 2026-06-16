@@ -1,0 +1,70 @@
+@page "/docs"
+
+<PageTitle>Documentation - 2D RPG Engine</PageTitle>
+
+<section class="docs-hero" aria-labelledby="docs-title">
+    <div>
+        <p class="eyebrow">Documentation tab</p>
+        <h1 id="docs-title">Build, test, and play levels with confidence.</h1>
+        <p class="hero-copy">
+            Follow these instructions when you want to run the application locally, verify changes with automated checks,
+            and use the visual editor plus runtime previews to create playable RPG levels.
+        </p>
+    </div>
+    <aside class="hero-card" aria-label="Quick start">
+        <span class="status-pill">Quick start</span>
+        <h2>Start the app</h2>
+        <pre><code>cd 2D_RPG
+dotnet run --project 2D_RPG/2D_RPG.csproj</code></pre>
+        <p>Open the local URL printed by the command, then use the navigation tabs to switch between Editor, Engine, and Docs.</p>
+    </aside>
+</section>
+
+<section class="docs-layout" aria-label="Project documentation">
+    <article class="docs-card" id="build">
+        <span class="docs-icon" aria-hidden="true">🏗️</span>
+        <h2>Build the application</h2>
+        <ol>
+            <li>Install the .NET SDK version required by the solution and restore dependencies with <code>dotnet restore 2D_RPG/2D_RPG.slnx</code>.</li>
+            <li>Compile the Blazor application and test project with <code>dotnet build 2D_RPG/2D_RPG.slnx</code>.</li>
+            <li>Run the web app with <code>dotnet run --project 2D_RPG/2D_RPG/2D_RPG.csproj</code> and browse to the HTTPS or HTTP endpoint shown in the terminal.</li>
+            <li>Use the Home tab as the launch point, then open Engine for runtime previews or Editor for authoring tools.</li>
+        </ol>
+    </article>
+
+    <article class="docs-card" id="test">
+        <span class="docs-icon" aria-hidden="true">🧪</span>
+        <h2>Test project changes</h2>
+        <ol>
+            <li>Run all automated checks with <code>dotnet test 2D_RPG/2D_RPG.slnx</code> before sharing changes.</li>
+            <li>When you change editor UI, add or update bUnit component tests under <code>2D_RPG/2D_RPG.Tests/Components</code>.</li>
+            <li>When you change gameplay data, persistence, validation, combat, maps, or assets, add or update service tests under <code>2D_RPG/2D_RPG.Tests/Services</code>.</li>
+            <li>Manually smoke test the Editor and Engine tabs after UI changes to confirm maps render, toolbar actions respond, and runtime previews still load.</li>
+        </ol>
+    </article>
+
+    <article class="docs-card" id="author">
+        <span class="docs-icon" aria-hidden="true">🗺️</span>
+        <h2>Build a level in the Editor</h2>
+        <ol>
+            <li>Open the Editor tab and review the current project, dirty status, map selector, tile palette, canvas, and inspector.</li>
+            <li>Select a tile from the palette, choose a paint tool, then paint the active map layer on the canvas.</li>
+            <li>Use layer controls to switch between terrain, decoration, collision, and object-focused authoring.</li>
+            <li>Add maps when a level needs another area, then name each map so transfers and runtime previews are easy to recognize.</li>
+            <li>Place objects and events for NPCs, props, dialogue, rewards, or map transfers, then inspect their details in the right-hand panel.</li>
+            <li>Watch the status bar for unsaved changes and validation guidance before moving from authoring to runtime testing.</li>
+        </ol>
+    </article>
+
+    <article class="docs-card" id="play">
+        <span class="docs-icon" aria-hidden="true">🎮</span>
+        <h2>Play and verify levels</h2>
+        <ol>
+            <li>Open the Engine tab to review the runtime preview, combat preview, and menu preview that consume project data.</li>
+            <li>Confirm the starting map loads with the expected tiles, hero position, interactable objects, and event markers.</li>
+            <li>Trigger authored events in preview flows where available, checking dialogue, rewards, transfers, and combat-facing content.</li>
+            <li>Use the menu preview to verify inventory and save/load behavior for the current project data.</li>
+            <li>Return to the Editor tab whenever a level fails validation or does not play as expected, update the content, and retest.</li>
+        </ol>
+    </article>
+</section>

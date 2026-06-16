@@ -11,6 +11,8 @@ public sealed class MapDefinition
     public string TileSetId { get; set; } = string.Empty;
     public string MusicCue { get; set; } = string.Empty;
     public List<MapLayerDefinition> Layers { get; set; } = [];
+    public List<MapObjectDefinition> Objects { get; set; } = [];
+    public List<MapEventDefinition> Events { get; set; } = [];
 
     public MapLayerDefinition? GetLayer(string id) => Layers.FirstOrDefault(layer => layer.Id == id);
 }

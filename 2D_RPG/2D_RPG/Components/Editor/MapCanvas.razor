@@ -2,6 +2,7 @@
 @using _2D_RPG.Services
 @inject EditorStateService EditorState
 @inject TileMapService TileMap
+@inject MapObjectService MapObjects
 
 <div class="map-canvas" style="--map-width:@(Map?.Width ?? 1); --zoom:@EditorState.ToolState.Zoom" aria-label="Interactive map canvas">
     @if (Map is not null)
@@ -13,7 +14,18 @@
                 var tileX = x;
                 var tileY = y;
                 var tileClass = GetTileClass(tileX, tileY);
-                <button type="button" class="map-tile paintable @tileClass" aria-label="Tile @tileX,@tileY" @onclick="() => ApplyTool(tileX, tileY)"></button>
+                var objectAtTile = MapObjects.GetObjectAt(Map, tileX, tileY);
+                var eventAtTile = MapObjects.GetEventAt(Map, tileX, tileY);
+                <button type="button" class="map-tile paintable @tileClass @GetOverlayClass(objectAtTile, eventAtTile)" aria-label="Tile @tileX,@tileY" @onclick="() => ApplyTool(tileX, tileY)">
+                    @if (objectAtTile is not null)
+                    {
+                        <span class="object-marker">@ObjectIcon(objectAtTile.Kind)</span>
+                    }
+                    @if (eventAtTile is not null)
+                    {
+                        <span class="event-marker">@EventIcon(eventAtTile.Trigger)</span>
+                    }
+                </button>
             }
         }
     }
@@ -25,36 +37,95 @@
 
     private void ApplyTool(int x, int y)
     {
-        if (Map is null)
-        {
-            return;
-        }
+        if (Map is null) return;
 
-        var changed = EditorState.ToolState.ActiveTool switch
+        var layerKind = Map.GetLayer(EditorState.ToolState.ActiveLayerId)?.Kind;
+        var changed = layerKind switch
         {
-            EditorToolKind.Paint => TileMap.PaintTile(Map, EditorState.ToolState.ActiveLayerId, x, y, EditorState.ToolState.SelectedTileId),
-            EditorToolKind.Erase => TileMap.EraseTile(Map, EditorState.ToolState.ActiveLayerId, x, y),
-            EditorToolKind.Fill => TileMap.FillLayer(Map, EditorState.ToolState.ActiveLayerId, EditorState.ToolState.SelectedTileId),
-            _ => false
+            MapLayerKind.Objects => ApplyObjectTool(x, y),
+            MapLayerKind.Events => ApplyEventTool(x, y),
+            _ => ApplyTileTool(x, y)
         };
 
-        if (changed)
+        if (changed) EditorState.MarkDirty();
+    }
+
+    private bool ApplyTileTool(int x, int y) => EditorState.ToolState.ActiveTool switch
+    {
+        EditorToolKind.Paint => TileMap.PaintTile(Map!, EditorState.ToolState.ActiveLayerId, x, y, EditorState.ToolState.SelectedTileId),
+        EditorToolKind.Erase => TileMap.EraseTile(Map!, EditorState.ToolState.ActiveLayerId, x, y),
+        EditorToolKind.Fill => TileMap.FillLayer(Map!, EditorState.ToolState.ActiveLayerId, EditorState.ToolState.SelectedTileId),
+        _ => false
+    };
+
+    private bool ApplyObjectTool(int x, int y)
+    {
+        var existing = MapObjects.GetObjectAt(Map!, x, y);
+        if (EditorState.ToolState.ActiveTool == EditorToolKind.Erase)
         {
-            EditorState.MarkDirty();
+            if (existing is null) return false;
+            var deleted = MapObjects.DeleteObject(Map!, existing.Id);
+            if (deleted && EditorState.ToolState.SelectedObjectId == existing.Id) EditorState.ToolState.SelectedObjectId = null;
+            return deleted;
         }
+
+        if (EditorState.ToolState.ActiveTool == EditorToolKind.Select)
+        {
+            if (existing is not null)
+            {
+                EditorState.ToolState.SelectedObjectId = existing.Id;
+                EditorState.ToolState.SelectedEventId = existing.EventId.Length > 0 ? existing.EventId : null;
+                return false;
+            }
+
+            return EditorState.ToolState.SelectedObjectId is not null && MapObjects.MoveObject(Map!, EditorState.ToolState.SelectedObjectId, x, y);
+        }
+
+        var placed = MapObjects.PlaceObject(Map!, EditorState.ToolState.ObjectBrush, x, y);
+        EditorState.ToolState.SelectedObjectId = placed?.Id;
+        EditorState.ToolState.SelectedEventId = null;
+        return placed is not null;
+    }
+
+    private bool ApplyEventTool(int x, int y)
+    {
+        var existing = MapObjects.GetEventAt(Map!, x, y);
+        if (EditorState.ToolState.ActiveTool == EditorToolKind.Erase)
+        {
+            if (existing is null) return false;
+            var deleted = MapObjects.DeleteEvent(Map!, existing.Id);
+            if (deleted && EditorState.ToolState.SelectedEventId == existing.Id) EditorState.ToolState.SelectedEventId = null;
+            return deleted;
+        }
+
+        if (EditorState.ToolState.ActiveTool == EditorToolKind.Select)
+        {
+            if (existing is not null)
+            {
+                EditorState.ToolState.SelectedEventId = existing.Id;
+                EditorState.ToolState.SelectedObjectId = Map!.Objects.FirstOrDefault(obj => obj.EventId == existing.Id)?.Id;
+                return false;
+            }
+
+            return EditorState.ToolState.SelectedEventId is not null && MapObjects.MoveEvent(Map!, EditorState.ToolState.SelectedEventId, x, y);
+        }
+
+        var placed = MapObjects.PlaceEvent(Map!, EditorState.ToolState.EventBrush, x, y);
+        EditorState.ToolState.SelectedEventId = placed?.Id;
+        EditorState.ToolState.SelectedObjectId = null;
+        return placed is not null;
     }
 
     private string GetTileClass(int x, int y)
     {
-        if (Map is null)
-        {
-            return "empty";
-        }
-
-        var tileId = Map.Layers.Where(layer => layer.IsVisible)
+        if (Map is null) return "empty";
+        var tileId = Map.Layers.Where(layer => layer.IsVisible && layer.Kind is not (MapLayerKind.Objects or MapLayerKind.Events))
             .Select(layer => layer.Tiles.FirstOrDefault(tile => tile.X == x && tile.Y == y)?.TileId)
             .LastOrDefault(tileId => tileId is not null);
-
         return TileSet?.Tiles.FirstOrDefault(tile => tile.Id == tileId)?.CssClass ?? "empty";
     }
+
+    private string GetOverlayClass(MapObjectDefinition? obj, MapEventDefinition? evt) => $"{(obj?.Id == EditorState.ToolState.SelectedObjectId ? "selected-object" : string.Empty)} {(evt?.Id == EditorState.ToolState.SelectedEventId ? "selected-event" : string.Empty)}";
+    private static string ObjectIcon(MapObjectKind kind) => kind switch { MapObjectKind.Door => "🚪", MapObjectKind.Chest => "🎁", MapObjectKind.Npc => "🙂", MapObjectKind.Trigger => "◆", _ => "■" };
+    private static string EventIcon(EventTriggerKind trigger) => trigger switch { EventTriggerKind.Touch => "↯", EventTriggerKind.EnterMap => "⇥", _ => "!" };
 }

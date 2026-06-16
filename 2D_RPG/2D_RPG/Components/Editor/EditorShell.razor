@@ -1,89 +1,132 @@
 @using _2D_RPG.Models
 @using _2D_RPG.Services
 @inject EditorStateService EditorState
+@inject TileMapService TileMap
 
 <PageTitle>@EditorState.CurrentProject.Name - Editor</PageTitle>
 
 <div class="editor-shell">
     <header class="editor-toolbar" aria-label="Editor toolbar">
         <div>
-            <p class="eyebrow">Project Bootstrap</p>
+            <p class="eyebrow">Map Authoring</p>
             <h1>@EditorState.CurrentProject.Name</h1>
         </div>
         <div class="toolbar-actions">
             <span class="status-pill @(EditorState.IsDirty ? "dirty" : "clean")">@(EditorState.IsDirty ? "Unsaved changes" : "Clean")</span>
-            <button type="button" class="tool active" @onclick="EditorState.MarkDirty">Mark dirty</button>
+            <button type="button" class="tool" @onclick="Undo" disabled="@(!TileMap.CanUndo)">Undo</button>
+            <button type="button" class="tool" @onclick="Redo" disabled="@(!TileMap.CanRedo)">Redo</button>
             <button type="button" class="tool" @onclick="EditorState.MarkClean">Mark clean</button>
         </div>
     </header>
 
-    <section class="workspace-grid foundation-workspace" aria-label="Editor workspace">
+    <section class="workspace-grid authoring-workspace" aria-label="Editor workspace">
         <aside class="tool-panel">
             <h2>Maps</h2>
             @foreach (var map in EditorState.CurrentProject.Maps)
             {
-                <button type="button" class="tool @(map.Id == EditorState.ActiveMapId ? "active" : null)" @onclick="() => SelectMap(map.Id)">
-                    @map.Name
-                </button>
+                <button type="button" class="tool @(map.Id == EditorState.ActiveMapId ? "active" : null)" @onclick="() => SelectMap(map.Id)">@map.Name</button>
             }
-
-            <h3>Tileset</h3>
-            <p class="panel-note">@ActiveTileSet?.Name</p>
-            <div class="tileset" aria-label="Sample tileset swatches">
-                @foreach (var tile in ActiveTileSet?.Tiles ?? Enumerable.Empty<TileDefinition>())
-                {
-                    <span class="tile-swatch @tile.CssClass" title="@tile.Name" aria-label="@tile.Name"></span>
-                }
+            <div class="map-actions">
+                <button type="button" class="tool" @onclick="CreateMap">New map</button>
+                <button type="button" class="tool" @onclick="DuplicateMap">Duplicate</button>
+                <button type="button" class="tool" @onclick="RenameMap">Rename</button>
+                <button type="button" class="tool" @onclick="ResizeMap">Resize</button>
+                <button type="button" class="tool danger" @onclick="DeleteMap" disabled="@(EditorState.CurrentProject.Maps.Count <= 1)">Delete</button>
             </div>
+
+            <TilePalette TileSet="ActiveTileSet" />
         </aside>
 
         <main class="map-stage" aria-label="Active map viewport">
             <div class="stage-toolbar">
                 <strong>@ActiveMap?.Name</strong>
-                <span>@ActiveMap?.TileWidth px tiles · @ActiveMap?.Width × @ActiveMap?.Height map</span>
+                <span>@ActiveMap?.TileWidth px tiles · @ActiveMap?.Width × @ActiveMap?.Height map · @EditorState.ToolState.ActiveTool</span>
             </div>
-            <div class="tile-map" role="img" aria-label="Model-backed active map preview">
-                @foreach (var tile in GroundTiles)
-                {
-                    var marker = tile.X == 8 && tile.Y == 6 ? "player" : string.Empty;
-                    <span class="map-tile @GetTileClass(tile.TileId) @marker"></span>
-                }
-            </div>
+            <MapCanvas Map="ActiveMap" TileSet="ActiveTileSet" />
         </main>
 
         <aside class="inspector-panel">
             <h2>Inspector</h2>
+            <label>Map name <input class="inspector-input" value="@ActiveMap?.Name" @onchange="RenameFromInput" /></label>
+            <label>Music cue <input class="inspector-input" value="@ActiveMap?.MusicCue" @onchange="UpdateMusic" /></label>
+            <h3>Layers</h3>
+            @foreach (var layer in ActiveMap?.Layers ?? Enumerable.Empty<MapLayerDefinition>())
+            {
+                <div class="layer-row @(layer.Id == EditorState.ToolState.ActiveLayerId ? "active" : null)">
+                    <button type="button" @onclick="() => EditorState.SetActiveLayer(layer.Id)">@layer.Name</button>
+                    <label><input type="checkbox" checked="@layer.IsVisible" @onchange="args => ToggleVisible(layer, args)" /> Visible</label>
+                    <label><input type="checkbox" checked="@layer.IsLocked" @onchange="args => ToggleLocked(layer, args)" /> Locked</label>
+                </div>
+            }
             <dl>
-                <dt>Project ID</dt>
-                <dd>@EditorState.CurrentProject.Id</dd>
-                <dt>Active map</dt>
-                <dd>@ActiveMap?.Name (@ActiveMap?.Id)</dd>
-                <dt>Layers</dt>
-                <dd>@(ActiveMap?.Layers.Count ?? 0)</dd>
-                <dt>Dirty state</dt>
-                <dd>@(EditorState.IsDirty ? "Dirty" : "Clean")</dd>
+                <dt>Active layer</dt><dd>@EditorState.ToolState.ActiveLayerId</dd>
+                <dt>Selected tile</dt><dd>@EditorState.ToolState.SelectedTileId</dd>
+                <dt>Music</dt><dd>@ActiveMap?.MusicCue</dd>
             </dl>
         </aside>
     </section>
-
-    <footer class="editor-statusbar">
-        <span>Schema @EditorState.CurrentProject.SchemaVersion</span>
-        <span>@EditorState.CurrentProject.Maps.Count map(s)</span>
-        <span>@EditorState.CurrentProject.TileSets.Count tileset(s)</span>
-    </footer>
 </div>
 
 @code {
     private MapDefinition? ActiveMap => EditorState.ActiveMap;
+    private TileSetDefinition? ActiveTileSet => EditorState.CurrentProject.TileSets.FirstOrDefault(tileSet => tileSet.Id == ActiveMap?.TileSetId);
 
-    private TileSetDefinition? ActiveTileSet => EditorState.CurrentProject.TileSets
-        .FirstOrDefault(tileSet => tileSet.Id == ActiveMap?.TileSetId);
+    private void SelectMap(string mapId)
+    {
+        EditorState.ActiveMapId = mapId;
+        if (EditorState.ActiveMap?.Layers.FirstOrDefault() is { } layer)
+        {
+            EditorState.ToolState.ActiveLayerId = layer.Id;
+        }
+    }
+    private void Undo() { if (TileMap.Undo(EditorState.CurrentProject)) EditorState.MarkDirty(); }
+    private void Redo() { if (TileMap.Redo(EditorState.CurrentProject)) EditorState.MarkDirty(); }
 
-    private IEnumerable<TilePlacement> GroundTiles => ActiveMap?.GetLayer("layer-ground")?.Tiles
-        .OrderBy(tile => tile.Y)
-        .ThenBy(tile => tile.X) ?? Enumerable.Empty<TilePlacement>();
+    private void CreateMap()
+    {
+        var id = $"map-{EditorState.CurrentProject.Maps.Count + 1}";
+        var map = NewBlankMap(id, "New Map", 16, 12);
+        EditorState.CurrentProject.Maps.Add(map);
+        EditorState.ActiveMapId = id;
+        EditorState.ToolState.ActiveLayerId = map.Layers.First().Id;
+        EditorState.MarkDirty();
+    }
 
-    private void SelectMap(string mapId) => EditorState.ActiveMapId = mapId;
+    private void DuplicateMap()
+    {
+        if (ActiveMap is null) return;
+        var clone = NewBlankMap($"{ActiveMap.Id}-copy-{EditorState.CurrentProject.Maps.Count}", $"{ActiveMap.Name} Copy", ActiveMap.Width, ActiveMap.Height);
+        clone.MusicCue = ActiveMap.MusicCue;
+        clone.Layers = ActiveMap.Layers.Select(layer => new MapLayerDefinition
+        {
+            Id = $"{layer.Id}-{clone.Id}", Name = layer.Name, Kind = layer.Kind, IsVisible = layer.IsVisible, IsLocked = layer.IsLocked,
+            Tiles = layer.Tiles.Select(tile => new TilePlacement { X = tile.X, Y = tile.Y, TileId = tile.TileId }).ToList()
+        }).ToList();
+        EditorState.CurrentProject.Maps.Add(clone);
+        EditorState.ActiveMapId = clone.Id;
+        EditorState.ToolState.ActiveLayerId = clone.Layers.First().Id;
+        EditorState.MarkDirty();
+    }
 
-    private string GetTileClass(int tileId) => ActiveTileSet?.Tiles.FirstOrDefault(tile => tile.Id == tileId)?.CssClass ?? "grass";
+    private void RenameMap() { if (ActiveMap is not null) { ActiveMap.Name = $"{ActiveMap.Name}*"; EditorState.MarkDirty(); } }
+    private void ResizeMap() { if (ActiveMap is not null) { ActiveMap.Width += 2; ActiveMap.Height += 1; TrimOutOfBounds(ActiveMap); EditorState.MarkDirty(); } }
+    private void DeleteMap() { if (ActiveMap is not null && EditorState.CurrentProject.Maps.Count > 1) { EditorState.CurrentProject.Maps.Remove(ActiveMap); EditorState.ActiveMapId = EditorState.CurrentProject.Maps.First().Id; EditorState.MarkDirty(); } }
+    private void RenameFromInput(ChangeEventArgs args) { if (ActiveMap is not null) { ActiveMap.Name = args.Value?.ToString() ?? ActiveMap.Name; EditorState.MarkDirty(); } }
+    private void UpdateMusic(ChangeEventArgs args) { if (ActiveMap is not null) { ActiveMap.MusicCue = args.Value?.ToString() ?? string.Empty; EditorState.MarkDirty(); } }
+    private void ToggleVisible(MapLayerDefinition layer, ChangeEventArgs args) { layer.IsVisible = args.Value is true; EditorState.MarkDirty(); }
+    private void ToggleLocked(MapLayerDefinition layer, ChangeEventArgs args) { layer.IsLocked = args.Value is true; EditorState.MarkDirty(); }
+
+    private MapDefinition NewBlankMap(string id, string name, int width, int height) => new()
+    {
+        Id = id, Name = name, Width = width, Height = height, TileSetId = EditorState.CurrentProject.TileSets.First().Id,
+        Layers = Enum.GetValues<MapLayerKind>().Select(kind => new MapLayerDefinition { Id = $"layer-{kind.ToString().ToLowerInvariant()}-{id}", Name = kind.ToString(), Kind = kind }).ToList()
+    };
+
+    private static void TrimOutOfBounds(MapDefinition map)
+    {
+        foreach (var layer in map.Layers)
+        {
+            layer.Tiles.RemoveAll(tile => !TileMapService.IsInBounds(map, tile.X, tile.Y));
+        }
+    }
 }

@@ -1,0 +1,60 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+@inject TileMapService TileMap
+
+<div class="map-canvas" style="--map-width:@(Map?.Width ?? 1); --zoom:@EditorState.ToolState.Zoom" aria-label="Interactive map canvas">
+    @if (Map is not null)
+    {
+        @for (var y = 0; y < Map.Height; y++)
+        {
+            @for (var x = 0; x < Map.Width; x++)
+            {
+                var tileX = x;
+                var tileY = y;
+                var tileClass = GetTileClass(tileX, tileY);
+                <button type="button" class="map-tile paintable @tileClass" aria-label="Tile @tileX,@tileY" @onclick="() => ApplyTool(tileX, tileY)"></button>
+            }
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public MapDefinition? Map { get; set; }
+    [Parameter] public TileSetDefinition? TileSet { get; set; }
+
+    private void ApplyTool(int x, int y)
+    {
+        if (Map is null)
+        {
+            return;
+        }
+
+        var changed = EditorState.ToolState.ActiveTool switch
+        {
+            EditorToolKind.Paint => TileMap.PaintTile(Map, EditorState.ToolState.ActiveLayerId, x, y, EditorState.ToolState.SelectedTileId),
+            EditorToolKind.Erase => TileMap.EraseTile(Map, EditorState.ToolState.ActiveLayerId, x, y),
+            EditorToolKind.Fill => TileMap.FillLayer(Map, EditorState.ToolState.ActiveLayerId, EditorState.ToolState.SelectedTileId),
+            _ => false
+        };
+
+        if (changed)
+        {
+            EditorState.MarkDirty();
+        }
+    }
+
+    private string GetTileClass(int x, int y)
+    {
+        if (Map is null)
+        {
+            return "empty";
+        }
+
+        var tileId = Map.Layers.Where(layer => layer.IsVisible)
+            .Select(layer => layer.Tiles.FirstOrDefault(tile => tile.X == x && tile.Y == y)?.TileId)
+            .LastOrDefault(tileId => tileId is not null);
+
+        return TileSet?.Tiles.FirstOrDefault(tile => tile.Id == tileId)?.CssClass ?? "empty";
+    }
+}

@@ -368,3 +368,114 @@ pre {
 .editor-statusbar {
     color: var(--rpg-muted);
 }
+
+.editor-toolbar,
+.toolbar-actions,
+.map-actions,
+.layer-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.editor-toolbar {
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.toolbar-actions .tool,
+.map-actions .tool {
+    width: auto;
+}
+
+.authoring-workspace {
+    grid-template-columns: 18rem minmax(28rem, 1fr) 22rem;
+}
+
+.palette-panel {
+    margin-top: 1rem;
+}
+
+.tool-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.palette-tiles {
+    grid-template-columns: 1fr;
+}
+
+.tile-button {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    border: 1px solid var(--rpg-line);
+    border-radius: 0.65rem;
+    padding: 0.35rem;
+    background: var(--rpg-panel-2);
+    color: var(--rpg-text);
+}
+
+.tile-button.active {
+    border-color: var(--rpg-gold);
+}
+
+.map-canvas {
+    display: grid;
+    grid-template-columns: repeat(var(--map-width), minmax(1.25rem, calc(2rem * var(--zoom))));
+    overflow: auto;
+    border: 0.4rem solid #0b1020;
+    border-radius: 1rem;
+    background: #0b1020;
+}
+
+.paintable {
+    min-width: calc(1.25rem * var(--zoom));
+    border-radius: 0;
+    cursor: crosshair;
+}
+
+.paintable:hover {
+    outline: 2px solid var(--rpg-gold);
+    z-index: 1;
+}
+
+.empty { background: rgba(255, 255, 255, 0.05); }
+
+.layer-row {
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--rpg-line);
+    border-radius: 0.65rem;
+    padding: 0.45rem;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.layer-row.active {
+    border-color: var(--rpg-accent);
+}
+
+.layer-row button {
+    border: 0;
+    background: transparent;
+    color: var(--rpg-accent);
+    font-weight: 800;
+}
+
+.inspector-input {
+    display: block;
+    width: 100%;
+    margin: 0.25rem 0 0.75rem;
+    border: 1px solid var(--rpg-line);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    background: #0b1020;
+    color: var(--rpg-text);
+}
+
+.danger {
+    border-color: rgba(248, 113, 113, 0.55);
+    color: #fca5a5;
+}

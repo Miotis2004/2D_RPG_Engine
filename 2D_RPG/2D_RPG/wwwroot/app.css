@@ -830,3 +830,43 @@ pre {
         grid-template-columns: 1fr;
     }
 }
+
+.menu-preview {
+    display: grid;
+    grid-template-columns: 18rem minmax(0, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+    border: 1px solid var(--rpg-line);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    background: rgba(24, 32, 51, 0.86);
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28);
+}
+
+.menu-tabs {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.menu-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+}
+
+.menu-card {
+    border: 1px solid var(--rpg-line);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: rgba(16, 21, 34, 0.72);
+}
+
+.menu-card h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 1100px) {
+    .menu-preview {
+        grid-template-columns: 1fr;
+    }
+}

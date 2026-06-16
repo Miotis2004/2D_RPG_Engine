@@ -1,0 +1,85 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+@inject MenuService Menus
+@inject ProjectPersistenceService Persistence
+
+<section class="menu-preview" aria-labelledby="menu-title">
+    <div class="menu-sidebar">
+        <p class="eyebrow">Menu systems</p>
+        <h2 id="menu-title">Runtime party menus & saves</h2>
+        <div class="menu-tabs" role="tablist" aria-label="Runtime menu tabs">
+            @foreach (var tab in Tabs)
+            {
+                <button class="tool @(activeTab == tab ? "active" : null)" @onclick="() => activeTab = tab">@tab</button>
+            }
+        </div>
+        <button class="tool" @onclick="RoundTripSave">Save / load round-trip</button>
+        <p class="panel-note">@persistenceMessage</p>
+    </div>
+
+    <div class="menu-content">
+        @if (activeTab == "Character")
+        {
+            @foreach (var member in Menus.SaveData.Party)
+            {
+                <article class="menu-card"><h3>@member.Name Lv. @member.Level</h3><p>HP @member.Hp / @member.MaxHp · MP @member.Mp / @member.MaxMp</p></article>
+            }
+        }
+        else if (activeTab == "Inventory")
+        {
+            @foreach (var stack in Menus.SaveData.Inventory)
+            {
+                var item = EditorState.CurrentProject.Items.FirstOrDefault(item => item.Id == stack.ItemId);
+                <article class="menu-card"><h3>@(item?.Name ?? stack.ItemId) × @stack.Quantity</h3><p>@item?.Description</p></article>
+            }
+        }
+        else if (activeTab == "Equipment")
+        {
+            var hero = Menus.SaveData.Party.First();
+            <article class="menu-card"><h3>@hero.Name equipment</h3><p>Weapon: @Equipped(hero, EquipmentSlotKind.Weapon)</p><p>Armor: @Equipped(hero, EquipmentSlotKind.Armor)</p><button class="tool" @onclick="EquipSword">Equip Bronze Sword</button></article>
+        }
+        else if (activeTab == "Spells")
+        {
+            var hero = Menus.SaveData.Party.First();
+            @foreach (var spell in EditorState.CurrentProject.Spells)
+            {
+                <article class="menu-card"><h3>@spell.Name (@spell.MpCost MP)</h3><p>@spell.Description</p><span class="status-pill @(Menus.CanCastSpell(hero.Id, spell.Id, EditorState.CurrentProject.Spells) ? "clean" : "dirty")">@(Menus.CanCastSpell(hero.Id, spell.Id, EditorState.CurrentProject.Spells) ? "Ready" : "Blocked")</span></article>
+            }
+        }
+        else if (activeTab == "Quests")
+        {
+            @foreach (var quest in EditorState.CurrentProject.Quests)
+            {
+                <article class="menu-card"><h3>@quest.Name</h3><p>@quest.Description</p><span class="status-pill clean">@Menus.GetQuestStatus(quest)</span></article>
+            }
+        }
+        else
+        {
+            <article class="menu-card"><h3>Settings</h3><p>Text speed: Normal · Battle hints: On · Current map: @Menus.SaveData.CurrentMapId (@Menus.SaveData.PlayerX, @Menus.SaveData.PlayerY)</p></article>
+        }
+    </div>
+</section>
+
+@code {
+    private static readonly string[] Tabs = ["Settings", "Character", "Inventory", "Equipment", "Spells", "Quests"];
+    private string activeTab = "Inventory";
+    private string persistenceMessage = "Runtime save slot is ready.";
+
+    protected override void OnInitialized()
+    {
+        if (!Menus.SaveData.Inventory.Any(stack => stack.ItemId == "item-bronze-sword"))
+        {
+            Menus.AddItem("item-bronze-sword", 1, EditorState.CurrentProject.Items);
+        }
+    }
+
+    private string Equipped(PartyMemberState member, EquipmentSlotKind slot) => member.Equipment.TryGetValue(slot, out var itemId) ? EditorState.CurrentProject.Items.First(item => item.Id == itemId).Name : "Empty";
+    private void EquipSword() => persistenceMessage = Menus.EquipItem("party-hero", "item-bronze-sword", EditorState.CurrentProject.Items) ? "Bronze Sword equipped." : "Cannot equip that item.";
+    private void RoundTripSave()
+    {
+        var json = Persistence.SaveRuntime(Menus.SaveData);
+        Menus.LoadSave(Persistence.LoadRuntime(json));
+        persistenceMessage = $"Saved and loaded {Menus.SaveData.SaveName}.";
+    }
+}

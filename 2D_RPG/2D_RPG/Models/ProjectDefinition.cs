@@ -14,6 +14,9 @@ public sealed class ProjectDefinition
     public List<AssetDefinition> Assets { get; set; } = [];
     public List<AnimationDefinition> Animations { get; set; } = [];
     public List<EncounterDefinition> Encounters { get; set; } = [];
+    public List<ItemDefinition> Items { get; set; } = [];
+    public List<SpellDefinition> Spells { get; set; } = [];
+    public List<QuestDefinition> Quests { get; set; } = [];
     public List<MapDefinition> Maps { get; set; } = [];
 
     [JsonIgnore]

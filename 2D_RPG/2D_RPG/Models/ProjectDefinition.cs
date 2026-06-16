@@ -13,6 +13,7 @@ public sealed class ProjectDefinition
     public List<TileSetDefinition> TileSets { get; set; } = [];
     public List<AssetDefinition> Assets { get; set; } = [];
     public List<AnimationDefinition> Animations { get; set; } = [];
+    public List<EncounterDefinition> Encounters { get; set; } = [];
     public List<MapDefinition> Maps { get; set; } = [];
 
     [JsonIgnore]

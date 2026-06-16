@@ -5,6 +5,17 @@ namespace _2D_RPG.Services;
 
 public sealed class RuntimeEngineService
 {
+    private readonly AnimationService animationService;
+    private List<AnimationDefinition> runtimeAnimations = [];
+
+    public RuntimeEngineService() : this(new AnimationService())
+    {
+    }
+
+    public RuntimeEngineService(AnimationService animationService)
+    {
+        this.animationService = animationService;
+    }
     private static readonly JsonSerializerOptions CloneOptions = new(JsonSerializerDefaults.Web);
 
     private List<MapDefinition> runtimeMaps = [];
@@ -14,6 +25,7 @@ public sealed class RuntimeEngineService
     public RuntimeSessionState StartSession(ProjectDefinition project, string mapId, int playerX = 1, int playerY = 1)
     {
         runtimeMaps = project.Maps.Select(CloneMap).ToList();
+        runtimeAnimations = project.Animations.Select(CloneAnimation).ToList();
         var sourceMap = runtimeMaps.FirstOrDefault(map => map.Id == mapId) ?? runtimeMaps.FirstOrDefault(map => map.Id == project.ActiveMapId) ?? runtimeMaps.FirstOrDefault();
         if (sourceMap is null)
         {
@@ -29,6 +41,7 @@ public sealed class RuntimeEngineService
         };
 
         ClampPlayerToMap();
+        StartPlayerAnimation(AnimationClipKind.Idle);
         TriggerEvents(EventTriggerKind.EnterMap, State.Player.X, State.Player.Y);
         return State;
     }
@@ -41,12 +54,14 @@ public sealed class RuntimeEngineService
         }
 
         State.Player.Facing = DirectionFromDelta(deltaX, deltaY, State.Player.Facing);
+        StartPlayerAnimation(AnimationClipKind.Walk);
         var targetX = State.Player.X + Math.Clamp(deltaX, -1, 1);
         var targetY = State.Player.Y + Math.Clamp(deltaY, -1, 1);
 
         if (TileMapService.IsBlocked(State.Map, targetX, targetY))
         {
             State.LastInteraction = $"Blocked at {targetX}, {targetY}.";
+            StartPlayerAnimation(AnimationClipKind.Idle);
             return false;
         }
 
@@ -147,6 +162,29 @@ public sealed class RuntimeEngineService
         }
     }
 
+    public IReadOnlyList<AnimationCueEvent> AdvanceAnimations(TimeSpan elapsed)
+    {
+        var animation = runtimeAnimations.FirstOrDefault(anim => anim.Id == State.Player.Animation.AnimationId);
+        return animation is null ? [] : animationService.Advance(animation, State.Player.Animation, elapsed);
+    }
+
+    public AnimationFrameDefinition? GetPlayerAnimationFrame()
+    {
+        var animation = runtimeAnimations.FirstOrDefault(anim => anim.Id == State.Player.Animation.AnimationId);
+        return animationService.GetCurrentFrame(animation, State.Player.Animation);
+    }
+
+    private void StartPlayerAnimation(AnimationClipKind kind)
+    {
+        var animation = runtimeAnimations.FirstOrDefault();
+        if (animation is null) return;
+
+        var clip = animationService.FindClip(animation, kind, State.Player.Facing);
+        if (clip is null || (State.Player.Animation.ClipId == clip.Id && !State.Player.Animation.IsComplete)) return;
+
+        State.Player.Animation = animationService.Start(animation, kind, State.Player.Facing);
+    }
+
     private (int X, int Y) FacingTile() => State.Player.Facing switch
     {
         RuntimeDirection.Up => (State.Player.X, State.Player.Y - 1),
@@ -173,4 +211,5 @@ public sealed class RuntimeEngineService
     };
 
     private static MapDefinition CloneMap(MapDefinition map) => JsonSerializer.Deserialize<MapDefinition>(JsonSerializer.Serialize(map, CloneOptions), CloneOptions) ?? new MapDefinition();
+    private static AnimationDefinition CloneAnimation(AnimationDefinition animation) => JsonSerializer.Deserialize<AnimationDefinition>(JsonSerializer.Serialize(animation, CloneOptions), CloneOptions) ?? new AnimationDefinition();
 }

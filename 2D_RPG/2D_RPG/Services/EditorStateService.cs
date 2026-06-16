@@ -63,7 +63,45 @@ public sealed class EditorStateService
                 new() { Id = "asset-village-npcs", Name = "Village NPCs", Kind = AssetKind.SpriteSheet, SourcePath = "assets/spritesheets/village-npcs.png", Width = 128, Height = 192, FrameWidth = 32, FrameHeight = 48, Tags = ["npc", "village"] },
                 new() { Id = "asset-oakvale-theme", Name = "Oakvale Theme", Kind = AssetKind.Audio, SourcePath = "assets/audio/oakvale-theme.ogg", Tags = ["music", "village"] }
             ],
+            Animations = [CreateHeroAnimation()],
             Maps = [CreateSampleMap(tileSet.Id)]
+        };
+    }
+
+    private static AnimationDefinition CreateHeroAnimation()
+    {
+        static AnimationClipDefinition Clip(AnimationClipKind kind, RuntimeDirection direction, int row, bool loop = true) => new()
+        {
+            Id = $"hero-{kind.ToString().ToLowerInvariant()}-{direction.ToString().ToLowerInvariant()}",
+            Kind = kind,
+            Direction = direction,
+            IsLooping = loop,
+            Frames =
+            [
+                new() { X = 0, Y = row * 48, Width = 32, Height = 48, DurationMilliseconds = 140 },
+                new() { X = 32, Y = row * 48, Width = 32, Height = 48, DurationMilliseconds = 140 },
+                new() { X = 64, Y = row * 48, Width = 32, Height = 48, DurationMilliseconds = 140 }
+            ],
+            Cues = kind == AnimationClipKind.Walk ? [new() { Id = $"step-{direction}", Kind = "sound", FrameIndex = 1, Payload = "footstep-soft" }] : []
+        };
+
+        return new AnimationDefinition
+        {
+            Id = "anim-hero-explorer",
+            Name = "Hero Explorer",
+            SpriteSheetAssetId = "asset-village-npcs",
+            Clips =
+            [
+                Clip(AnimationClipKind.Idle, RuntimeDirection.Down, 0),
+                Clip(AnimationClipKind.Idle, RuntimeDirection.Left, 1),
+                Clip(AnimationClipKind.Idle, RuntimeDirection.Right, 2),
+                Clip(AnimationClipKind.Idle, RuntimeDirection.Up, 3),
+                Clip(AnimationClipKind.Walk, RuntimeDirection.Down, 0),
+                Clip(AnimationClipKind.Walk, RuntimeDirection.Left, 1),
+                Clip(AnimationClipKind.Walk, RuntimeDirection.Right, 2),
+                Clip(AnimationClipKind.Walk, RuntimeDirection.Up, 3),
+                Clip(AnimationClipKind.Attack, RuntimeDirection.Right, 4, loop: false)
+            ]
         };
     }
 

@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="2D_RPG/2D_RPG.csproj" />
+  <Project Path="2D_RPG.Tests/2D_RPG.Tests.csproj" />
 </Solution>

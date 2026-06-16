@@ -316,3 +316,55 @@ pre {
         grid-template-columns: 1fr;
     }
 }
+
+.editor-shell {
+    display: grid;
+    gap: 1rem;
+}
+
+.editor-toolbar,
+.editor-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--rpg-line);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(16, 21, 34, 0.82);
+}
+
+.editor-toolbar h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toolbar-actions .tool {
+    width: auto;
+    margin: 0;
+}
+
+.status-pill.clean {
+    border-color: rgba(74, 222, 128, 0.45);
+    color: #86efac;
+}
+
+.status-pill.dirty {
+    border-color: rgba(250, 204, 21, 0.45);
+    color: var(--rpg-gold);
+}
+
+.foundation-workspace {
+    margin-bottom: 0;
+}
+
+.panel-note,
+.editor-statusbar {
+    color: var(--rpg-muted);
+}

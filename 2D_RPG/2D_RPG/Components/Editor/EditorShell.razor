@@ -1,0 +1,89 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+
+<PageTitle>@EditorState.CurrentProject.Name - Editor</PageTitle>
+
+<div class="editor-shell">
+    <header class="editor-toolbar" aria-label="Editor toolbar">
+        <div>
+            <p class="eyebrow">Project Bootstrap</p>
+            <h1>@EditorState.CurrentProject.Name</h1>
+        </div>
+        <div class="toolbar-actions">
+            <span class="status-pill @(EditorState.IsDirty ? "dirty" : "clean")">@(EditorState.IsDirty ? "Unsaved changes" : "Clean")</span>
+            <button type="button" class="tool active" @onclick="EditorState.MarkDirty">Mark dirty</button>
+            <button type="button" class="tool" @onclick="EditorState.MarkClean">Mark clean</button>
+        </div>
+    </header>
+
+    <section class="workspace-grid foundation-workspace" aria-label="Editor workspace">
+        <aside class="tool-panel">
+            <h2>Maps</h2>
+            @foreach (var map in EditorState.CurrentProject.Maps)
+            {
+                <button type="button" class="tool @(map.Id == EditorState.ActiveMapId ? "active" : null)" @onclick="() => SelectMap(map.Id)">
+                    @map.Name
+                </button>
+            }
+
+            <h3>Tileset</h3>
+            <p class="panel-note">@ActiveTileSet?.Name</p>
+            <div class="tileset" aria-label="Sample tileset swatches">
+                @foreach (var tile in ActiveTileSet?.Tiles ?? [])
+                {
+                    <span class="tile-swatch @tile.CssClass" title="@tile.Name" aria-label="@tile.Name"></span>
+                }
+            </div>
+        </aside>
+
+        <main class="map-stage" aria-label="Active map viewport">
+            <div class="stage-toolbar">
+                <strong>@ActiveMap?.Name</strong>
+                <span>@ActiveMap?.TileWidth px tiles · @ActiveMap?.Width × @ActiveMap?.Height map</span>
+            </div>
+            <div class="tile-map" role="img" aria-label="Model-backed active map preview">
+                @foreach (var tile in GroundTiles)
+                {
+                    var marker = tile.X == 8 && tile.Y == 6 ? "player" : string.Empty;
+                    <span class="map-tile @GetTileClass(tile.TileId) @marker"></span>
+                }
+            </div>
+        </main>
+
+        <aside class="inspector-panel">
+            <h2>Inspector</h2>
+            <dl>
+                <dt>Project ID</dt>
+                <dd>@EditorState.CurrentProject.Id</dd>
+                <dt>Active map</dt>
+                <dd>@ActiveMap?.Name (@ActiveMap?.Id)</dd>
+                <dt>Layers</dt>
+                <dd>@(ActiveMap?.Layers.Count ?? 0)</dd>
+                <dt>Dirty state</dt>
+                <dd>@(EditorState.IsDirty ? "Dirty" : "Clean")</dd>
+            </dl>
+        </aside>
+    </section>
+
+    <footer class="editor-statusbar">
+        <span>Schema @EditorState.CurrentProject.SchemaVersion</span>
+        <span>@EditorState.CurrentProject.Maps.Count map(s)</span>
+        <span>@EditorState.CurrentProject.TileSets.Count tileset(s)</span>
+    </footer>
+</div>
+
+@code {
+    private MapDefinition? ActiveMap => EditorState.ActiveMap;
+
+    private TileSetDefinition? ActiveTileSet => EditorState.CurrentProject.TileSets
+        .FirstOrDefault(tileSet => tileSet.Id == ActiveMap?.TileSetId);
+
+    private IEnumerable<TilePlacement> GroundTiles => ActiveMap?.GetLayer("layer-ground")?.Tiles
+        .OrderBy(tile => tile.Y)
+        .ThenBy(tile => tile.X) ?? [];
+
+    private void SelectMap(string mapId) => EditorState.ActiveMapId = mapId;
+
+    private string GetTileClass(int tileId) => ActiveTileSet?.Tiles.FirstOrDefault(tile => tile.Id == tileId)?.CssClass ?? "grass";
+}

@@ -51,7 +51,7 @@ public sealed class AssetCatalogService
         return asset is not null && project.Assets.Remove(asset);
     }
 
-    public string ResolveWebPath(AssetDefinition asset) => asset.SourcePath.StartsWith('/', StringComparison.Ordinal) ? asset.SourcePath : $"/{asset.SourcePath}";
+    public string ResolveWebPath(AssetDefinition asset) => asset.SourcePath.StartsWith("/", StringComparison.Ordinal) ? asset.SourcePath : $"/{asset.SourcePath}";
 
     public IReadOnlyList<AssetValidationDiagnostic> Validate(ProjectDefinition project, Func<string, bool>? fileExists = null)
     {
@@ -99,5 +99,5 @@ public sealed class AssetCatalogService
         return candidate;
     }
 
-    private static string Slugify(string value) => string.Join('-', value.ToLowerInvariant().Split(Path.GetInvalidFileNameChars().Concat([' ', '_']).ToArray(), StringSplitOptions.RemoveEmptyEntries));
+    private static string Slugify(string value) => string.Join("-", value.ToLowerInvariant().Split(Path.GetInvalidFileNameChars().Concat(new[] { ' ', '_' }).ToArray(), StringSplitOptions.RemoveEmptyEntries));
 }

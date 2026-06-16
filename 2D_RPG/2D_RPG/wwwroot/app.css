@@ -678,3 +678,89 @@ pre {
     border-color: rgba(248, 113, 113, 0.45);
     color: #fecaca;
 }
+
+.runtime-preview {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--rpg-line);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(24, 32, 51, 0.88);
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28);
+}
+
+.runtime-preview:focus {
+    outline: 3px solid rgba(125, 211, 252, 0.5);
+}
+
+.runtime-header,
+.runtime-layout {
+    display: grid;
+    gap: 1rem;
+}
+
+.runtime-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+}
+
+.runtime-layout {
+    grid-template-columns: minmax(24rem, 1fr) 20rem;
+}
+
+.runtime-map {
+    display: grid;
+    grid-template-columns: repeat(var(--map-width), minmax(1.4rem, 2rem));
+    overflow: auto;
+    border: 0.4rem solid #0b1020;
+    border-radius: 1rem;
+    background: #0b1020;
+}
+
+.runtime-blocked {
+    box-shadow: inset 0 0 0 2px rgba(248, 113, 113, 0.5);
+}
+
+.runtime-player {
+    position: absolute;
+    inset: 12%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 900;
+}
+
+.runtime-panel {
+    border: 1px solid var(--rpg-line);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: rgba(16, 21, 34, 0.72);
+}
+
+.runtime-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.runtime-controls .tool:nth-child(1),
+.runtime-controls .tool:nth-child(5) {
+    grid-column: 2;
+}
+
+.runtime-controls .tool {
+    margin: 0;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .runtime-header,
+    .runtime-layout {
+        grid-template-columns: 1fr;
+    }
+}

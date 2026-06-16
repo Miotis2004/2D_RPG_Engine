@@ -1,0 +1,103 @@
+@using _2D_RPG.Models
+@using _2D_RPG.Services
+@inject EditorStateService EditorState
+@inject RuntimeEngineService Runtime
+
+<section class="runtime-preview" aria-labelledby="runtime-title" tabindex="0" @onkeydown="HandleKeyDown">
+    <header class="runtime-header">
+        <div>
+            <p class="eyebrow">Exploration Runtime</p>
+            <h2 id="runtime-title">Playable map preview</h2>
+            <p>Use the controls, WASD, or arrow keys to move. Press Space or Enter to interact.</p>
+        </div>
+        <button type="button" class="tool" @onclick="Restart">Restart playtest</button>
+    </header>
+
+    @if (Runtime.State.Map is not null)
+    {
+        <div class="runtime-layout">
+            <div class="runtime-map" style="--map-width:@Runtime.State.Map.Width" aria-label="Runtime map">
+                @for (var y = 0; y < Runtime.State.Map.Height; y++)
+                {
+                    @for (var x = 0; x < Runtime.State.Map.Width; x++)
+                    {
+                        var tileX = x;
+                        var tileY = y;
+                        <div class="map-tile @GetTileClass(tileX, tileY) @(TileMapService.IsBlocked(Runtime.State.Map, tileX, tileY) ? "runtime-blocked" : null)">
+                            @if (Runtime.State.Player.X == tileX && Runtime.State.Player.Y == tileY)
+                            {
+                                <span class="runtime-player" aria-label="Player">@PlayerIcon</span>
+                            }
+                            else if (Runtime.State.Map.Objects.FirstOrDefault(obj => obj.X == tileX && obj.Y == tileY) is { } obj)
+                            {
+                                <span class="object-marker">@ObjectIcon(obj.Kind)</span>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+
+            <aside class="runtime-panel">
+                <strong>@Runtime.State.Map.Name</strong>
+                <p>@Runtime.State.LastInteraction</p>
+                <div class="runtime-controls" aria-label="Movement controls">
+                    <button type="button" class="tool" @onclick="() => Move(0, -1)">↑</button>
+                    <button type="button" class="tool" @onclick="() => Move(-1, 0)">←</button>
+                    <button type="button" class="tool" @onclick="Interact">Interact</button>
+                    <button type="button" class="tool" @onclick="() => Move(1, 0)">→</button>
+                    <button type="button" class="tool" @onclick="() => Move(0, 1)">↓</button>
+                </div>
+                <h3>Log</h3>
+                <ul>
+                    @foreach (var message in Runtime.State.Messages.TakeLast(4))
+                    {
+                        <li>@message.Text</li>
+                    }
+                </ul>
+                <h3>Inventory</h3>
+                <p>@(Runtime.State.Inventory.Count == 0 ? "No rewards collected." : string.Join(", ", Runtime.State.Inventory))</p>
+            </aside>
+        </div>
+    }
+</section>
+
+@code {
+    private string PlayerIcon => Runtime.State.Player.Facing switch
+    {
+        RuntimeDirection.Up => "▲",
+        RuntimeDirection.Down => "▼",
+        RuntimeDirection.Left => "◀",
+        RuntimeDirection.Right => "▶",
+        _ => "●"
+    };
+
+    protected override void OnInitialized() => Restart();
+    private void Restart() => Runtime.StartSession(EditorState.CurrentProject, EditorState.ActiveMapId);
+    private void Move(int dx, int dy) => Runtime.MovePlayer(dx, dy);
+    private void Interact() => Runtime.Interact();
+
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        _ = args.Key switch
+        {
+            "ArrowUp" or "w" or "W" => Runtime.MovePlayer(0, -1),
+            "ArrowDown" or "s" or "S" => Runtime.MovePlayer(0, 1),
+            "ArrowLeft" or "a" or "A" => Runtime.MovePlayer(-1, 0),
+            "ArrowRight" or "d" or "D" => Runtime.MovePlayer(1, 0),
+            " " or "Enter" => Runtime.Interact(),
+            _ => false
+        };
+    }
+
+    private string GetTileClass(int x, int y)
+    {
+        var map = Runtime.State.Map;
+        var tileSet = EditorState.CurrentProject.TileSets.FirstOrDefault(set => set.Id == map?.TileSetId);
+        var tileId = map?.Layers.Where(layer => layer.IsVisible && layer.Kind is not (MapLayerKind.Objects or MapLayerKind.Events or MapLayerKind.Collision))
+            .Select(layer => layer.Tiles.FirstOrDefault(tile => tile.X == x && tile.Y == y)?.TileId)
+            .LastOrDefault(id => id is not null);
+        return tileSet?.Tiles.FirstOrDefault(tile => tile.Id == tileId)?.CssClass ?? "empty";
+    }
+
+    private static string ObjectIcon(MapObjectKind kind) => kind switch { MapObjectKind.Door => "🚪", MapObjectKind.Chest => "🎁", MapObjectKind.Npc => "🙂", MapObjectKind.Trigger => "◆", _ => "■" };
+}

@@ -1,3 +1,4 @@
+using Xunit;
 using _2D_RPG.Components.Runtime;
 using _2D_RPG.Services;
 using Bunit;
@@ -5,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace _2D_RPG.Tests.Components;
 
-public sealed class MenuPreviewTests : TestContext
+public sealed class MenuPreviewTests : BunitContext
 {
     [Fact]
     public void MenuPreviewDisplaysInventoryAndCanRoundTripSave()
@@ -14,7 +15,7 @@ public sealed class MenuPreviewTests : TestContext
         Services.AddSingleton(new MenuService());
         Services.AddSingleton(new ProjectPersistenceService());
 
-        var menu = RenderComponent<MenuPreview>();
+        var menu = Render<MenuPreview>();
 
         Assert.Contains("Potion × 3", menu.Markup);
         menu.FindAll("button").Single(button => button.TextContent.Contains("Save / load")).Click();

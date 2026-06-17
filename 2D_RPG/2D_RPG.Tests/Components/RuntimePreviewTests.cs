@@ -1,3 +1,4 @@
+using Xunit;
 using _2D_RPG.Components.Runtime;
 using _2D_RPG.Services;
 using Bunit;
@@ -5,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace _2D_RPG.Tests.Components;
 
-public sealed class RuntimePreviewTests : TestContext
+public sealed class RuntimePreviewTests : BunitContext
 {
     [Fact]
     public void RendersAnimationFrameCoordinatesAndAdvancesFrame()
@@ -15,7 +16,7 @@ public sealed class RuntimePreviewTests : TestContext
         Services.AddSingleton(animationService);
         Services.AddSingleton(new RuntimeEngineService(animationService));
 
-        var preview = RenderComponent<RuntimePreview>();
+        var preview = Render<RuntimePreview>();
 
         Assert.Contains("--sprite-x:0px", preview.Markup);
         preview.FindAll("button").Single(button => button.TextContent.Contains("Advance 140ms")).Click();

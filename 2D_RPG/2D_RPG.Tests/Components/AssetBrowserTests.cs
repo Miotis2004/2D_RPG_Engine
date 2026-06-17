@@ -1,3 +1,4 @@
+using Xunit;
 using _2D_RPG.Components.Editor;
 using _2D_RPG.Services;
 using Bunit;
@@ -5,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace _2D_RPG.Tests.Components;
 
-public sealed class AssetBrowserTests : TestContext
+public sealed class AssetBrowserTests : BunitContext
 {
     [Fact]
     public void RendersAssetsDiagnosticsAndImportFlow()
@@ -14,7 +15,7 @@ public sealed class AssetBrowserTests : TestContext
         Services.AddSingleton<AssetCatalogService>();
         var changed = false;
 
-        var browser = RenderComponent<AssetBrowser>(parameters => parameters
+        var browser = Render<AssetBrowser>(parameters => parameters
             .Add(component => component.Project, project)
             .Add(component => component.FileExists, _ => false)
             .Add(component => component.Changed, () => changed = true));

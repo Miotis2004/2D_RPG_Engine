@@ -1,3 +1,4 @@
+using Xunit;
 using _2D_RPG.Services;
 
 namespace _2D_RPG.Tests.Services;

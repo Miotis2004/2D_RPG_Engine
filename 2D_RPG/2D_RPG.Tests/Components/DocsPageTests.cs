@@ -1,14 +1,15 @@
+using Xunit;
 using _2D_RPG.Components.Pages;
 using Bunit;
 
 namespace _2D_RPG.Tests.Components;
 
-public sealed class DocsPageTests : TestContext
+public sealed class DocsPageTests : BunitContext
 {
     [Fact]
     public void RendersBuildTestAndPlayInstructions()
     {
-        var docs = RenderComponent<Docs>();
+        var docs = Render<Docs>();
 
         Assert.Contains("Build the application", docs.Markup);
         Assert.Contains("Test project changes", docs.Markup);

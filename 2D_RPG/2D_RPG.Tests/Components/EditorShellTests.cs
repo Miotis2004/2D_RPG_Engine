@@ -1,3 +1,4 @@
+using Xunit;
 using _2D_RPG.Components.Editor;
 using _2D_RPG.Services;
 using Bunit;
@@ -5,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace _2D_RPG.Tests.Components;
 
-public sealed class EditorShellTests : TestContext
+public sealed class EditorShellTests : BunitContext
 {
     [Fact]
     public void RendersProjectMapAndCleanDirtyStatus()
@@ -15,8 +16,9 @@ public sealed class EditorShellTests : TestContext
         Services.AddSingleton<TileMapService>();
         Services.AddSingleton<MapObjectService>();
         Services.AddSingleton<ProjectValidationService>();
+        Services.AddSingleton<AssetCatalogService>();
 
-        var shell = RenderComponent<EditorShell>();
+        var shell = Render<EditorShell>();
 
         Assert.Contains("Sample RPG Project", shell.Markup);
         Assert.Contains("Oakvale Village", shell.Markup);

@@ -1,3 +1,4 @@
+using Xunit;
 using _2D_RPG.Components.Editor;
 using _2D_RPG.Services;
 using Bunit;
@@ -5,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace _2D_RPG.Tests.Components;
 
-public sealed class InspectorPanelTests : TestContext
+public sealed class InspectorPanelTests : BunitContext
 {
     [Fact]
     public void UpdatesSelectedObjectAndEventThroughInputs()
@@ -18,7 +19,7 @@ public sealed class InspectorPanelTests : TestContext
         Services.AddSingleton(editorState);
         Services.AddSingleton<MapObjectService>();
 
-        var panel = RenderComponent<InspectorPanel>(parameters => parameters
+        var panel = Render<InspectorPanel>(parameters => parameters
             .Add(component => component.Project, project)
             .Add(component => component.Map, map));
 
